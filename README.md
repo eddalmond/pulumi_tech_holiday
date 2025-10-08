@@ -12,16 +12,29 @@ This project uses [Pulumi](https://www.pulumi.com/) to define and manage AWS inf
 
 ## Prerequisites
 
-- Python 3.12 or later
+- Python 3.9 or later
+- [Poetry](https://python-poetry.org/) for dependency management
 - [Pulumi CLI](https://www.pulumi.com/docs/get-started/install/) installed
 - AWS account with appropriate credentials configured
 - AWS CLI configured with valid credentials
 
 ## Setup
 
-1. **Install dependencies**:
+1. **Install dependencies using Poetry**:
    ```bash
-   pip install -r requirements.txt
+   poetry install
+   ```
+
+   This will create a virtual environment and install all required dependencies including Pulumi and AWS provider.
+
+2. **Activate the Poetry virtual environment**:
+   ```bash
+   poetry shell
+   ```
+   
+   Or run commands within the virtual environment using:
+   ```bash
+   poetry run <command>
    ```
 
 2. **Configure AWS credentials**:
@@ -37,48 +50,71 @@ This project uses [Pulumi](https://www.pulumi.com/) to define and manage AWS inf
    ```
 
 3. **Login to Pulumi**:
+
    ```bash
    # For local state storage
-   pulumi login --local
+   poetry run pulumi login --local
    
    # Or for Pulumi Cloud
-   pulumi login
+   poetry run pulumi login
    ```
 
 4. **Initialize the stack**:
+
    ```bash
-   pulumi stack init dev
+   poetry run pulumi stack init dev
    ```
 
 5. **Configure the AWS region** (optional, defaults to your AWS CLI configuration):
+
    ```bash
-   pulumi config set aws:region us-east-1
+   poetry run pulumi config set aws:region us-east-1
    ```
 
 ## Usage
 
+### Working with Poetry
+
+This project uses Poetry for dependency management and virtual environments. Here are the key commands:
+
+- **Install dependencies**: `poetry install`
+- **Activate shell**: `poetry shell`
+- **Run commands in venv**: `poetry run <command>`
+- **Add new dependency**: `poetry add <package>`
+- **Add dev dependency**: `poetry add --group dev <package>`
+- **Show dependencies**: `poetry show`
+- **Update dependencies**: `poetry update`
+
 ### Preview changes
+
 To preview what resources will be created:
+
 ```bash
-pulumi preview
+poetry run pulumi preview
 ```
 
 ### Deploy infrastructure
+
 To create/update the infrastructure:
+
 ```bash
-pulumi up
+poetry run pulumi up
 ```
 
 ### View outputs
+
 After deployment, view the API endpoint and resource names:
+
 ```bash
-pulumi stack output
+poetry run pulumi stack output
 ```
 
 ### Destroy infrastructure
+
 To tear down all resources:
+
 ```bash
-pulumi destroy
+poetry run pulumi destroy
 ```
 
 ## Architecture
@@ -105,7 +141,7 @@ After deployment, the following outputs are available:
 Once deployed, you can test the API endpoint:
 
 ```bash
-curl $(pulumi stack output api_url)
+curl $(poetry run pulumi stack output api_url)
 ```
 
 The response will include information about the Lambda function and configured resources.
