@@ -108,11 +108,11 @@ def deploy_bootstrap_stack():
 To use this S3 backend in other Pulumi stacks:
 
 1. Set the backend URL:
-   pulumi login s3://{bucket_name}
+  pulumi login s3://{bucket_name}
 
 2. Or configure programmatically by adding this to your project's Pulumi.yaml:
-   backend:
-     url: s3://{bucket_name}
+  backend:
+    url: s3://{bucket_name}
 
 3. The DynamoDB table will be used automatically for state locking.
 """
