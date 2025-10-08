@@ -68,7 +68,7 @@ This project uses [Pulumi](https://www.pulumi.com/) to define and manage AWS inf
 5. **Configure the AWS region** (optional, defaults to your AWS CLI configuration):
 
    ```bash
-   poetry run pulumi config set aws:region us-east-1
+   poetry run pulumi config set aws:region eu-west-2
    ```
 
 ## Usage
