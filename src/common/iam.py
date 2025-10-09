@@ -1,4 +1,5 @@
 from typing import Optional, List, Dict, Any
+import pulumi
 import pulumi_aws as aws
 import json
 from .policy_config import (
@@ -80,9 +81,6 @@ def create_dynamodb_policy(
     Returns:
         The created role policy resource
     """
-    # Handle Pulumi Output objects
-    import pulumi
-    
     def create_policy_doc(arn):
         statement = create_dynamodb_policy_statement(arn, access_level)
         return json.dumps({
@@ -121,9 +119,6 @@ def create_s3_policy(
     Returns:
         The created role policy resource
     """
-    # Handle Pulumi Output objects
-    import pulumi
-    
     def create_policy_doc(arn):
         statements = create_s3_policy_statement(arn, access_level)
         return json.dumps({

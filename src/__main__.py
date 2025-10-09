@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 import pulumi
 import pulumi_aws as aws
-import json
 from common.config import _config
 from common.s3 import create_s3_bucket
 from common.dynamoDB import create_dynamodb_table
