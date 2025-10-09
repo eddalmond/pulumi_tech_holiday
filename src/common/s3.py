@@ -106,10 +106,12 @@ def create_s3_bucket(
     )
     
     # Apply enabled configurations
-    [func(bucket, name_prefix) for enabled, func in [
+    for enabled, func in [
         (versioning, enable_versioning),
         (encryption, enable_encryption), 
         (public_access, enable_public_access_block),
-    ] if enabled]
+    ]:
+        if enabled:
+            func(bucket, name_prefix)
 
     return bucket
