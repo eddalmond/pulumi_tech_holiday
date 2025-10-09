@@ -92,11 +92,19 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Run Checkov
-        uses: bridgecrewio/checkov-action@master
+      - name: "Run Checkov"
+        uses: bridgecrewio/checkov-action@v12
         with:
-          directory: .
-          soft_fail: true
+          directory: infrastructure/
+          soft_fail: false
+          output_format: sarif
+          output_file_path: checkov-report.sarif
+
+      - name: Upload Checkov results to GitHub Security tab
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov_results
+          path: checkov-report.sarif
 
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
