@@ -1,0 +1,240 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-format:
+    name: Code Quality & Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+        
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.7.1
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+      
+    - name: Install additional linting tools
+      run: |
+        poetry add --group dev ruff black isort mypy bandit safety
+        
+    - name: Run Ruff (linting)
+      run: |
+        poetry run ruff check . --output-format=github
+        
+    - name: Run Ruff (formatting check)
+      run: |
+        poetry run ruff format --check .
+        
+    - name: Run Black (formatting check)
+      run: |
+        poetry run black --check --diff .
+        
+    - name: Run isort (import sorting check)
+      run: |
+        poetry run isort --check-only --diff .
+        
+    - name: Run MyPy (type checking)
+      run: |
+        poetry run mypy infrastructure/ src/ --ignore-missing-imports
+        
+    - name: Run Bandit (security linting)
+      run: |
+        poetry run bandit -r infrastructure/ src/ -f json -o bandit-report.json || true
+        poetry run bandit -r infrastructure/ src/
+        
+    - name: Run Safety (dependency vulnerability check)
+      run: |
+        poetry run safety check --json --output safety-report.json || true
+        poetry run safety check
+        
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  pulumi-security-checks:
+    name: Infrastructure Security & Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+        
+    - name: Install Checkov
+      run: |
+        pip install checkov
+        
+    - name: Install TFSEC
+      run: |
+        curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+        sudo mv tfsec /usr/local/bin/
+        
+    - name: Install Terrascan
+      run: |
+        curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
+        tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz
+        sudo install terrascan /usr/local/bin && rm terrascan
+        
+    - name: Install Poetry and dependencies
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.7.1
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        
+    - name: Install project dependencies
+      run: poetry install --no-interaction --no-root
+      
+    - name: Generate Pulumi program for analysis
+      run: |
+        # Create a temporary pulumi program for static analysis
+        mkdir -p temp-pulumi-analysis
+        cp -r infrastructure/ temp-pulumi-analysis/
+        cp pyproject.toml temp-pulumi-analysis/
+        cp Pulumi.yaml temp-pulumi-analysis/
+        
+    - name: Run Checkov on Pulumi code
+      run: |
+        checkov -d infrastructure/ \
+          --framework pulumi \
+          --output cli \
+          --output json \
+          --output-file-path . \
+          --repo-root-for-plan-enrichment . \
+          || true
+        
+    - name: Run Checkov on Python files
+      run: |
+        checkov -d infrastructure/ \
+          --framework python \
+          --output cli \
+          --output json \
+          --output-file-path . \
+          || true
+          
+    - name: Install Pulumi Policy as Code (optional advanced checks)
+      run: |
+        # Install pulumi policy pack for additional checks
+        poetry run pip install pulumi-policy
+        
+    - name: Upload Checkov reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: checkov-reports
+        path: |
+          results_*.json
+          
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+        
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: 1.7.1
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+      
+    - name: Add test dependencies
+      run: |
+        poetry add --group dev pytest-cov pytest-html pytest-xdist
+        
+    - name: Run unit tests with coverage
+      run: |
+        poetry run pytest tests/ \
+          --cov=infrastructure \
+          --cov=src \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term \
+          --junit-xml=pytest-results.xml \
+          --html=pytest-report.html \
+          --self-contained-html \
+          -v
+          
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          pytest-results.xml
+          pytest-report.html
+          htmlcov/
+
+  summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, pulumi-security-checks, unit-tests]
+    if: always()
+    
+    steps:
+    - name: Check job results
+      run: |
+        echo "Lint and Format: ${{ needs.lint-and-format.result }}"
+        echo "Security Checks: ${{ needs.pulumi-security-checks.result }}"
+        echo "Unit Tests: ${{ needs.unit-tests.result }}"
+        
+        if [[ "${{ needs.lint-and-format.result }}" == "failure" || 
+              "${{ needs.pulumi-security-checks.result }}" == "failure" || 
+              "${{ needs.unit-tests.result }}" == "failure" ]]; then
+          echo "❌ One or more CI checks failed"
+          exit 1
+        else
+          echo "✅ All CI checks passed successfully"
+        fi

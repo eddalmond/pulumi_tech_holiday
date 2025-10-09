@@ -1,0 +1,46 @@
+# Checkov configuration for Pulumi Infrastructure as Code scanning
+# This file configures Checkov to scan your Pulumi Python code for security issues
+
+# Skip specific checks that may not be relevant for your use case
+skip-check:
+  # AWS specific skips (uncomment as needed)
+  # - CKV_AWS_20  # S3 bucket public write access
+  # - CKV_AWS_21  # S3 bucket public read access
+  # - CKV_AWS_18  # S3 bucket logging
+  # - CKV_AWS_144 # S3 bucket cross-region replication
+
+  # Generic skips
+  - CKV_DOCKER_2 # Ensure that HEALTHCHECK instructions have been added (if not using Docker)
+
+# Include specific frameworks
+framework:
+  - pulumi
+  - python
+
+# Output formats
+output:
+  - cli
+  - json
+
+# Set severity threshold (LOW, MEDIUM, HIGH, CRITICAL)
+check:
+  - CKV_AWS_* # Include all AWS checks
+  - CKV_GENERAL_* # Include general checks
+
+# Custom policies directory (optional)
+# external-checks-dir: ./custom-policies
+
+# Enable specific check categories
+enable-secret-scan-all-files: true
+
+# Quiet mode (reduce output verbosity)
+quiet: false
+
+# Compact output
+compact: true
+
+# Soft fail mode (don't fail CI on findings, just report)
+soft-fail: false
+
+# Skip downloading external checks
+no-download: false
