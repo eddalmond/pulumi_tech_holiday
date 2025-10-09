@@ -95,7 +95,7 @@ def deploy_application_stack(stack_name: str):
         name_prefix="api-bucket",
         versioning=True,
         encryption=True,
-        public_access=False,
+        public_access=True,
         tags={
             "Purpose": "App storage bucket",
             "Environment": stack_name,
