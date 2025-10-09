@@ -2,4 +2,4 @@ name: pulumi_tech_holiday
 description: Simple API with AWS API Gateway, Lambda, S3, and DynamoDB
 runtime: python
 toolchain: poetry
-main: src/__main__.py
+main: infrastructure/__main__.py
