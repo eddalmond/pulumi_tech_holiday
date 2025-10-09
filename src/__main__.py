@@ -6,14 +6,22 @@ This program deploys different resources based on the stack name:
 - Other stacks: Creates the main application infrastructure (API Gateway, Lambda, etc.)
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+
 import pulumi
 import pulumi_aws as aws
 import json
-
-# Get current stack and AWS account info
-stack_name = pulumi.get_stack()
-current = aws.get_caller_identity()
-region = aws.get_region()
+from common.config import (
+    get_stack_name, 
+    get_account_id, 
+    get_region_name,
+    get_aws_caller_identity,
+    get_aws_region,
+    get_default_tags
+)
+from common.s3 import create_s3_bucket
 
 def deploy_stack(stack_name: str):
     if stack_name == "bootstrap":
@@ -25,13 +33,24 @@ def deploy_bootstrap_stack():
     # Bootstrap Stack: Create S3 bucket and DynamoDB table for Pulumi state storage
     print(f"Deploying bootstrap infrastructure for state storage...")
     
-
+    # Create the S3 bucket for storing Pulumi state
+    state_bucket = create_s3_bucket(
+        name_prefix="pulumi-state",
+        versioning=True,
+        encryption=True,
+        public_access=False,
+        tags={
+            "Purpose": "Pulumi State Storage",
+            "Environment": "Bootstrap", 
+            "ManagedBy": "Pulumi"
+        }
+    )
     
     # Create DynamoDB table for state locking
     # This prevents multiple users from modifying state simultaneously
     lock_table = aws.dynamodb.Table(
         "pulumi-state-lock-table",
-        name=f"pulumi-state-lock-{current.account_id}",
+        name=f"pulumi-state-lock-{get_account_id()}",
         billing_mode="PAY_PER_REQUEST",
         hash_key="LockID",
         attributes=[{
@@ -47,32 +66,32 @@ def deploy_bootstrap_stack():
     
     # Export the values needed to configure other stacks
     pulumi.export("state_bucket_name", state_bucket.bucket)
-    pulumi.export("state_bucket_region", region.name)
+    pulumi.export("state_bucket_region", get_region_name())
     pulumi.export("lock_table_name", lock_table.name)
-    pulumi.export("aws_account_id", current.account_id)
+    pulumi.export("aws_account_id", get_account_id())
     
     # Export the S3 backend configuration that other projects can use
     backend_config = {
         "bucket": state_bucket.bucket,
-        "region": region.name,
+        "region": get_region_name(),
         "dynamodb_table": lock_table.name
     }
     
     pulumi.export("backend_config", backend_config)
     
     # Export instructions for other projects
-    instructions = f"""
+    instructions = pulumi.Output.all(state_bucket.bucket).apply(lambda args: f"""
 To use this S3 backend in other Pulumi stacks:
 
 1. Set the backend URL:
-  pulumi login s3://{bucket_name}
+  pulumi login s3://{args[0]}
 
 2. Or configure programmatically by adding this to your project's Pulumi.yaml:
   backend:
-    url: s3://{bucket_name}
+    url: s3://{args[0]}
 
 3. The DynamoDB table will be used automatically for state locking.
-"""
+""")
     
     pulumi.export("usage_instructions", instructions)
 
@@ -325,7 +344,7 @@ def handler(event, context):
         "https://",
         rest_api.id,
         ".execute-api.",
-        region.name,
+        get_region_name(),
         ".amazonaws.com/",
         stage.stage_name,
         "/",
@@ -335,4 +354,4 @@ def handler(event, context):
     pulumi.export("lambda_function_name", lambda_function.name)
 
 # Execute the deployment based on the current stack
-deploy_stack(stack_name)
+deploy_stack(get_stack_name())
