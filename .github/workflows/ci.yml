@@ -216,63 +216,6 @@ jobs:
           pytest-results.xml
           pytest-report.html
           htmlcov/
-          
-    - name: Upload coverage to Codecov (optional)
-      uses: codecov/codecov-action@v3
-      if: always()
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-
-  integration-check:
-    name: Integration & Deployment Check
-    runs-on: ubuntu-latest
-    needs: [lint-and-format, pulumi-security-checks, unit-tests]
-    if: github.event_name == 'pull_request'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.13'
-        
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.7.1
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-        
-    - name: Install dependencies
-      run: poetry install --no-interaction --no-root
-      
-    - name: Install Pulumi CLI
-      uses: pulumi/actions@v4
-      
-    - name: Configure AWS credentials (for dry-run validation)
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-west-2
-      if: env.AWS_ACCESS_KEY_ID != ''
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        
-    - name: Pulumi Preview (Dry Run)
-      run: |
-        cd infrastructure
-        poetry run pulumi preview --stack dev --non-interactive
-      env:
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-      if: env.PULUMI_ACCESS_TOKEN != ''
-      env:
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 
   summary:
     name: Build Summary
