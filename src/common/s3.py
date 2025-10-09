@@ -96,7 +96,7 @@ def create_s3_bucket(
         The created S3 bucket resource
     """
     # Create a unique bucket name using account ID and region
-    bucket_name = f"{name_prefix}-{_config.get_account_id()}-{_config.get_region_name()}"
+    bucket_name = f"{name_prefix}-{_config.account_id}-{_config.region_name}"
     
     # Create the S3 bucket
     bucket = aws.s3.Bucket(

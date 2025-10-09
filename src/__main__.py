@@ -57,14 +57,14 @@ def deploy_bootstrap_stack():
     
     # Export the values needed to configure other stacks
     pulumi.export("state_bucket_name", state_bucket.bucket)
-    pulumi.export("state_bucket_region", _config.get_region_name())
+    pulumi.export("state_bucket_region", _config.region_name)
     pulumi.export("lock_table_name", lock_table.name)
-    pulumi.export("aws_account_id", _config.get_account_id())
+    pulumi.export("aws_account_id", _config.account_id)
     
     # Export the S3 backend configuration that other projects can use
     backend_config = {
         "bucket": state_bucket.bucket,
-        "region": _config.get_region_name(),
+        "region": _config.region_name,
         "dynamodb_table": lock_table.name
     }
     
@@ -338,7 +338,7 @@ def handler(event, context):
         "https://",
         rest_api.id,
         ".execute-api.",
-        _config.get_region_name(),
+        _config.region_name,
         ".amazonaws.com/",
         stage.stage_name,
         "/",
@@ -348,4 +348,4 @@ def handler(event, context):
     pulumi.export("lambda_function_name", lambda_function.name)
 
 # Execute the deployment based on the current stack
-deploy_stack(_config.get_stack_name())
+deploy_stack(_config.stack_name)

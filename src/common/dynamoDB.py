@@ -13,7 +13,7 @@ def create_dynamodb_table(
     """
     dynamodb_table = aws.dynamodb.Table(
         f"{name_prefix}",
-        name=f"{name_prefix}-{_config.get_account_id()}",
+        name=f"{name_prefix}-{_config.account_id}",
         billing_mode="PAY_PER_REQUEST",
         hash_key=hash_key,
         attributes=attributes,
