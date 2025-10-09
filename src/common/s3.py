@@ -80,7 +80,7 @@ def create_s3_bucket(
     name_prefix: str,
     versioning: bool,
     encryption: bool,
-    public_access: bool,
+    public_access_block: bool,
     tags: Optional[dict]) -> aws.s3.Bucket:
     """
     Create an S3 bucket with optional security configurations.
@@ -109,7 +109,7 @@ def create_s3_bucket(
     for enabled, func in [
         (versioning, enable_versioning),
         (encryption, enable_encryption), 
-        (public_access, enable_public_access_block),
+        (public_access_block, enable_public_access_block),
     ]:
         if enabled:
             func(bucket, name_prefix)

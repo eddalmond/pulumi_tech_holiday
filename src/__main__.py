@@ -32,7 +32,7 @@ def deploy_bootstrap_stack():
         name_prefix="pulumi-state",
         versioning=True,
         encryption=True,
-        public_access=True,
+        public_access_block=True,
         tags={
             "Purpose": "Pulumi State Storage",
             "Environment": "Bootstrap", 
@@ -95,7 +95,7 @@ def deploy_application_stack(stack_name: str):
         name_prefix="api-bucket",
         versioning=True,
         encryption=True,
-        public_access=True,
+        public_access_block=True,
         tags={
             "Purpose": "App storage bucket",
             "Environment": stack_name,
