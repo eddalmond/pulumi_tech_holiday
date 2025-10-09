@@ -20,6 +20,7 @@ def enable_versioning(bucket: aws.s3.Bucket, name_prefix: str):
             "status": "Enabled"
         }
     )
+    return bucket_versioning
 
 def enable_encryption(bucket: aws.s3.Bucket, name_prefix: str):
     """
