@@ -92,21 +92,23 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install Checkov
-        run: |
-          pip install checkov
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          soft_fail: true
 
-      - name: Install TFSEC
-        run: |
-          curl -s -L "$(curl -s https://api.github.com/repos/aquasecurity/tfsec/releases/latest | grep -o -E "https://.+?tfsec-linux-amd64")" -o tfsec
-          chmod +x tfsec
-          sudo mv tfsec /usr/local/bin/
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          soft_fail: true
 
-      - name: Install Terrascan
-        run: |
-          curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
-          tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz
-          sudo install terrascan /usr/local/bin && rm terrascan
+      - name: Run Terrascan
+        uses: tenable/terrascan-action@main
+        with:
+          iac_type: "all"
+          policy_type: "all"
+          only_warn: true
 
       - name: Install Poetry and dependencies
         uses: snok/install-poetry@v1
