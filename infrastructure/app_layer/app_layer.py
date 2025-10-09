@@ -109,7 +109,7 @@ def deploy_application_stack(stack_name: str):
     
     # Export the API endpoint
     pulumi.export("api_url", api_url)
-    pulumi.export("bucket_name", s3_resources.bucket.id,)
+    pulumi.export("bucket_name", s3_resources.bucket.id)
     pulumi.export("dynamodb_table_name", dynamodb_table.name)
     pulumi.export("lambda_function_name", lambda_function.name)
 
