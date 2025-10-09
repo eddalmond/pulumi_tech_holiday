@@ -1,10 +1,6 @@
 from typing import Optional
-import pulumi
 import pulumi_aws as aws
-
-stack_name = pulumi.get_stack()
-current = aws.get_caller_identity()
-region = aws.get_region()
+from .config import get_account_id, get_region_name
 
 def enable_versioning(bucket: aws.s3.Bucket, name_prefix: str):
     """
@@ -81,38 +77,35 @@ def create_s3_bucket(
     versioning: bool,
     encryption: bool,
     public_access: bool,
-    tags: Optional[dict]
-) -> aws.s3.Bucket:
+    tags: Optional[dict]) -> aws.s3.Bucket:
     """
-    Creates an AWS S3 bucket with optional configurations for versioning, encryption, and public access.
-    Args:
-        name_prefix (str): Prefix for the bucket name.
-        versioning (bool): If True, enables versioning on the bucket.
-        encryption (bool): If True, enables encryption on the bucket.
-        public_access (bool): If True, enables public access block on the bucket.
-        tags (Optional[dict]): Dictionary of tags to assign to the bucket.
-    Returns:
-        aws.s3.Bucket: The created S3 bucket resource.
-    """
-
-    # Create a unique bucket name using account ID and region
-    bucket_name = f"{name_prefix}-{current.account_id}-{region.name}"
+    Create an S3 bucket with optional security configurations.
     
+    Args:
+        name_prefix: Prefix for the bucket name
+        versioning: Enable bucket versioning
+        encryption: Enable server-side encryption
+        public_access: Enable public access blocking
+        tags: Optional tags to apply to the bucket
+        
+    Returns:
+        The created S3 bucket resource
+    """
+    # Create a unique bucket name using account ID and region
+    bucket_name = f"{name_prefix}-{get_account_id()}-{get_region_name()}"
+    
+    # Create the S3 bucket
     bucket = aws.s3.Bucket(
-        f"{name_prefix}",
+        f"{name_prefix}-bucket",
         bucket=bucket_name,
-        tags=tags
+        tags=tags or {}
     )
     
-    # Apply optional configurations
-    configurations = {
-        versioning: enable_versioning,
-        encryption: enable_encryption,
-        public_access: enable_public_access_block,
-    }
-    
-    for enabled, config_func in configurations.items():
-        if enabled:
-            config_func(bucket, name_prefix)
-    
+    # Apply enabled configurations
+    [func(bucket, name_prefix) for enabled, func in [
+        (versioning, enable_versioning),
+        (encryption, enable_encryption), 
+        (public_access, enable_public_access_block),
+    ] if enabled]
+
     return bucket
