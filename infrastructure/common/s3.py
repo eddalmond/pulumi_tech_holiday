@@ -1,6 +1,16 @@
 from typing import Optional
+from dataclasses import dataclass
 import pulumi_aws as aws
 from .config import _config
+
+
+@dataclass
+class S3BucketResources:
+    """Container for all resources created by create_s3_bucket."""
+    bucket: aws.s3.Bucket
+    versioning: Optional[aws.s3.BucketVersioning] = None
+    encryption: Optional[aws.s3.BucketServerSideEncryptionConfiguration] = None
+    public_access_block: Optional[aws.s3.BucketPublicAccessBlock] = None
 
 def enable_versioning(bucket: aws.s3.Bucket, name_prefix: str):
     """
@@ -81,7 +91,7 @@ def create_s3_bucket(
     versioning: bool,
     encryption: bool,
     public_access_block: bool,
-    tags: Optional[dict]) -> aws.s3.Bucket:
+    tags: Optional[dict]) -> S3BucketResources:
     """
     Create an S3 bucket with optional security configurations.
     
@@ -89,11 +99,11 @@ def create_s3_bucket(
         name_prefix: Prefix for the bucket name
         versioning: Enable bucket versioning
         encryption: Enable server-side encryption
-        public_access: Enable public access blocking
+        public_access_block: Enable public access blocking
         tags: Optional tags to apply to the bucket
         
     Returns:
-        The created S3 bucket resource
+        S3BucketResources: Container with the bucket and all optional resources created
     """
     # Create a unique bucket name using account ID and region
     bucket_name = f"{name_prefix}-{_config.account_id}-{_config.region_name}"
@@ -105,13 +115,23 @@ def create_s3_bucket(
         tags=tags or {}
     )
     
-    # Apply enabled configurations
-    for enabled, func in [
-        (versioning, enable_versioning),
-        (encryption, enable_encryption), 
-        (public_access_block, enable_public_access_block),
-    ]:
-        if enabled:
-            func(bucket, name_prefix)
+    # Create optional resources and track them
+    versioning_resource = None
+    encryption_resource = None
+    public_access_block_resource = None
+    
+    if versioning:
+        versioning_resource = enable_versioning(bucket, name_prefix)
+    
+    if encryption:
+        encryption_resource = enable_encryption(bucket, name_prefix)
+    
+    if public_access_block:
+        public_access_block_resource = enable_public_access_block(bucket, name_prefix)
 
-    return bucket
+    return S3BucketResources(
+        bucket=bucket,
+        versioning=versioning_resource,
+        encryption=encryption_resource,
+        public_access_block=public_access_block_resource
+    )
