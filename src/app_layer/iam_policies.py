@@ -2,7 +2,7 @@ from typing import Optional, List
 import pulumi
 import pulumi_aws as aws
 import json
-from policy_config import (
+from .policy_config import (
     create_dynamodb_policy_statement,
     create_s3_policy_statement,
     create_cloudwatch_logs_policy_statement
