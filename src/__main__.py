@@ -32,7 +32,7 @@ def deploy_bootstrap_stack():
         name_prefix="pulumi-state",
         versioning=True,
         encryption=True,
-        public_access=False,
+        public_access=True,
         tags={
             "Purpose": "Pulumi State Storage",
             "Environment": "Bootstrap", 
