@@ -15,7 +15,7 @@ def deploy_application_stack(stack_name: str):
     print(f"Deploying application infrastructure for stack: {stack_name}")
     
     # Create an S3 bucket for storing data/assets
-    bucket = create_s3_bucket(
+    s3_resources = create_s3_bucket(
         name_prefix="api-bucket",
         versioning=True,
         encryption=True,
@@ -67,7 +67,7 @@ def deploy_application_stack(stack_name: str):
     s3_policy = create_s3_policy(
         name_prefix="lambda",
         role=lambda_role,
-        bucket_arn=bucket.arn,
+        bucket_arn=s3_resources.bucket.arn,
         access_level="full_access"  # Can be easily changed to restrict access
     )
     
@@ -83,7 +83,7 @@ def deploy_application_stack(stack_name: str):
         environment=aws.lambda_.FunctionEnvironmentArgs(
             variables={
                 "DYNAMODB_TABLE": dynamodb_table.name,
-                "S3_BUCKET": bucket.id,
+                "S3_BUCKET": s3_resources.bucket.id,
             },
         ),
         tags={
@@ -109,7 +109,7 @@ def deploy_application_stack(stack_name: str):
     
     # Export the API endpoint
     pulumi.export("api_url", api_url)
-    pulumi.export("bucket_name", bucket.id)
+    pulumi.export("bucket_name", s3_resources.bucket.id,)
     pulumi.export("dynamodb_table_name", dynamodb_table.name)
     pulumi.export("lambda_function_name", lambda_function.name)
 
