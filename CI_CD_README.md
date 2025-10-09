@@ -4,7 +4,7 @@ This project includes a comprehensive CI/CD pipeline that ensures code quality, 
 
 ## Pipeline Overview
 
-The GitHub Actions workflow (`.github/workflows/ci.yml`) includes four main stages:
+The GitHub Actions workflow (`.github/workflows/ci.yml`) includes three main stages:
 
 ### 1. Code Quality & Linting
 - **Ruff**: Fast Python linter and formatter
@@ -24,10 +24,6 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) includes four main stag
 - **pytest**: Unit test execution
 - **Coverage**: Code coverage reporting
 - **HTML Reports**: Detailed test and coverage reports
-
-### 4. Integration Checks
-- **Pulumi Preview**: Dry-run deployment validation
-- **AWS Validation**: Infrastructure plan verification
 
 ## Running Locally
 
