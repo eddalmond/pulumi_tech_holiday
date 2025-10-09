@@ -47,6 +47,7 @@ def enable_encryption(bucket: aws.s3.Bucket, name_prefix: str):
         }]
     )
     return bucket_encryption
+
 def enable_public_access_block(bucket: aws.s3.Bucket, name_prefix: str):
     """
     Enables a public access block on the specified AWS S3 bucket to restrict public access.
@@ -72,6 +73,8 @@ def enable_public_access_block(bucket: aws.s3.Bucket, name_prefix: str):
         ignore_public_acls=True,
         restrict_public_buckets=True
     )
+
+    return bucket_public_access_block
 
 def create_s3_bucket(
     name_prefix: str,
