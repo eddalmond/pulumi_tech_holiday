@@ -13,15 +13,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 import pulumi
 import pulumi_aws as aws
 import json
-from common.config import (
-    get_stack_name, 
-    get_account_id, 
-    get_region_name,
-    get_aws_caller_identity,
-    get_aws_region,
-    get_default_tags
-)
+from common.config import _config
 from common.s3 import create_s3_bucket
+from common.dynamoDB import create_dynamodb_table
 
 def deploy_stack(stack_name: str):
     if stack_name == "bootstrap":
@@ -47,11 +41,8 @@ def deploy_bootstrap_stack():
     )
     
     # Create DynamoDB table for state locking
-    # This prevents multiple users from modifying state simultaneously
-    lock_table = aws.dynamodb.Table(
-        "pulumi-state-lock-table",
-        name=f"pulumi-state-lock-{get_account_id()}",
-        billing_mode="PAY_PER_REQUEST",
+    lock_table = create_dynamodb_table(
+        name_prefix="pulumi-state-lock",
         hash_key="LockID",
         attributes=[{
             "name": "LockID",
@@ -66,14 +57,14 @@ def deploy_bootstrap_stack():
     
     # Export the values needed to configure other stacks
     pulumi.export("state_bucket_name", state_bucket.bucket)
-    pulumi.export("state_bucket_region", get_region_name())
+    pulumi.export("state_bucket_region", _config.get_region_name())
     pulumi.export("lock_table_name", lock_table.name)
-    pulumi.export("aws_account_id", get_account_id())
+    pulumi.export("aws_account_id", _config.get_account_id())
     
     # Export the S3 backend configuration that other projects can use
     backend_config = {
         "bucket": state_bucket.bucket,
-        "region": get_region_name(),
+        "region": _config.get_region_name(),
         "dynamodb_table": lock_table.name
     }
     
@@ -344,7 +335,7 @@ def handler(event, context):
         "https://",
         rest_api.id,
         ".execute-api.",
-        get_region_name(),
+        _config.get_region_name(),
         ".amazonaws.com/",
         stage.stage_name,
         "/",
@@ -354,4 +345,4 @@ def handler(event, context):
     pulumi.export("lambda_function_name", lambda_function.name)
 
 # Execute the deployment based on the current stack
-deploy_stack(get_stack_name())
+deploy_stack(_config.get_stack_name())

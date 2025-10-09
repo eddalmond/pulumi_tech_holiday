@@ -1,6 +1,6 @@
 from typing import Optional
 import pulumi_aws as aws
-from .config import get_account_id, get_region_name
+from .config import _config
 
 def enable_versioning(bucket: aws.s3.Bucket, name_prefix: str):
     """
@@ -92,7 +92,7 @@ def create_s3_bucket(
         The created S3 bucket resource
     """
     # Create a unique bucket name using account ID and region
-    bucket_name = f"{name_prefix}-{get_account_id()}-{get_region_name()}"
+    bucket_name = f"{name_prefix}-{_config.get_account_id()}-{_config.get_region_name()}"
     
     # Create the S3 bucket
     bucket = aws.s3.Bucket(

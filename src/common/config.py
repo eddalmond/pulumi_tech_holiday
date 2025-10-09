@@ -10,58 +10,70 @@ This module provides centralized access to:
 
 import pulumi
 import pulumi_aws as aws
+from typing import Optional
 
-# These will be initialized when first accessed
-_stack_name = None
-_current = None
-_region = None
 
-def _ensure_initialized():
-    """Lazy initialization of AWS resources."""
-    global _stack_name, _current, _region
-    if _stack_name is None:
-        _stack_name = pulumi.get_stack()
-        _current = aws.get_caller_identity()
-        _region = aws.get_region()
-
-def get_stack_name() -> str:
-    """Get the current Pulumi stack name."""
-    _ensure_initialized()
-    return _stack_name
-
-def get_account_id() -> str:
-    """Get the current AWS account ID."""
-    _ensure_initialized()
-    return _current.account_id
-
-def get_region_name() -> str:
-    """Get the current AWS region name."""
-    _ensure_initialized()
-    return _region.name
-
-def get_aws_caller_identity():
-    """Get the AWS caller identity object."""
-    _ensure_initialized()
-    return _current
-
-def get_aws_region():
-    """Get the AWS region object."""
-    _ensure_initialized()
-    return _region
-
-# Common tag patterns
-def get_default_tags(environment: str = None, purpose: str = None) -> dict:
-    """Generate standardized tags for AWS resources."""
-    _ensure_initialized()
-    tags = {
-        "ManagedBy": "Pulumi",
-        "Stack": _stack_name,
-        "Region": _region.name,
-    }
+class PulumiConfig:
+    """Centralized configuration for Pulumi AWS resources."""
     
-    if environment:
-        tags["Environment"] = environment
-    if purpose:
-        tags["Purpose"] = purpose
+    def __init__(self):
+        self._stack_name: Optional[str] = None
+        self._current: Optional[aws.GetCallerIdentityResult] = None
+        self._region: Optional[aws.GetRegionResult] = None
+    
+    def _ensure_initialized(self):
+        """Lazy initialization of AWS resources."""
+        if self._stack_name is None:
+            self._stack_name = pulumi.get_stack()
+            self._current = aws.get_caller_identity()
+            self._region = aws.get_region()
+    
+    @property
+    def stack_name(self) -> str:
+        """Get the current Pulumi stack name."""
+        self._ensure_initialized()
+        return self._stack_name
+    
+    @property
+    def account_id(self) -> str:
+        """Get the current AWS account ID."""
+        self._ensure_initialized()
+        return self._current.account_id
+    
+    @property
+    def region_name(self) -> str:
+        """Get the current AWS region name."""
+        self._ensure_initialized()
+        return self._region.name
+    
+    @property
+    def aws_caller_identity(self):
+        """Get the AWS caller identity object."""
+        self._ensure_initialized()
+        return self._current
+    
+    @property
+    def aws_region(self):
+        """Get the AWS region object."""
+        self._ensure_initialized()
+        return self._region
+    
+    def get_default_tags(self, environment: str = None, purpose: str = None) -> dict:
+        """Generate standardized tags for AWS resources."""
+        self._ensure_initialized()
+        tags = {
+            "ManagedBy": "Pulumi",
+            "Stack": self._stack_name,
+            "Region": self._region.name,
+        }
         
-    return tags
+        if environment:
+            tags["Environment"] = environment
+        if purpose:
+            tags["Purpose"] = purpose
+            
+        return tags
+
+
+# Global singleton instance
+_config = PulumiConfig()
