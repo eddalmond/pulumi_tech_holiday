@@ -6,48 +6,17 @@ These tests focus on testing YOUR CODE logic, not just mock verification.
 
 import unittest
 import pulumi
-from typing import Any
-
-# Set up mocks
-class MyMocks(pulumi.runtime.Mocks):
-    def __init__(self):
-        self.created_resources = []
-        
-    def new_resource(self, args: pulumi.runtime.MockResourceArgs):
-        # Track what resources are being created
-        self.created_resources.append(args.typ)
-        
-        outputs = args.inputs
-        if args.typ == "aws:s3/bucket:Bucket":
-            outputs = {
-                **args.inputs,
-                "id": f"{args.inputs.get('bucket', args.name)}-id",
-                "arn": f"arn:aws:s3:::{args.inputs.get('bucket', args.name)}",
-            }
-        elif args.typ in ["aws:s3/bucketVersioning:BucketVersioning", 
-                          "aws:s3/bucketServerSideEncryptionConfiguration:BucketServerSideEncryptionConfiguration",
-                          "aws:s3/bucketPublicAccessBlock:BucketPublicAccessBlock"]:
-            outputs = {**args.inputs, "id": f"{args.name}-id"}
-        return [f"{args.name}-id", outputs]
-    
-    def call(self, args: pulumi.runtime.MockCallArgs):
-        if args.token == "aws:index/getCallerIdentity:getCallerIdentity":
-            return {"accountId": "123456789012"}
-        elif args.token == "aws:index/getRegion:getRegion":
-            return {"name": "us-west-2"}
-        return {}
-    
-    def reset_tracking(self):
-        """Reset the tracked resources list between tests"""
-        self.created_resources = []
-
-# Create a single mock instance that we can access from tests
-_test_mocks = MyMocks()
-pulumi.runtime.set_mocks(_test_mocks, preview=False)
-
 import sys
 import os
+
+# Set up path for infrastructure imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'infrastructure'))
+
+# Import common test utilities
+from tests.common import setup_pulumi_mocks, get_test_mocks
+
+# Set up mocks for all tests in this module
+setup_pulumi_mocks()
 
 from common.s3 import create_s3_bucket
 from common.config import _config

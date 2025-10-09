@@ -41,85 +41,83 @@ poetry run pytest tests/test_s3.py::TestS3BucketCreation::test_bucket_created_wi
 
 ### Mocking
 
-Tests use Pulumi's `pulumi.runtime.Mocks` class to mock:
-1. **Resource Creation** (`new_resource`): Returns mock resource IDs and state
+Tests use a centralized mocking system from `tests/common.py` that provides:
+
+1. **Resource Creation** (`new_resource`): Returns realistic mock resource IDs and state for all AWS resource types
 2. **Provider Calls** (`call`): Returns mock data for AWS API calls like `get_caller_identity()`
+3. **Resource Tracking**: Tracks what resources are created for test verification
+4. **Helper Functions**: Convenience functions for common test assertions
 
-Example mock setup:
-```python
-class MyMocks(pulumi.runtime.Mocks):
-    def new_resource(self, args):
-        # Return [id, state_dict]
-        return [f"{args.name}-id", args.inputs]
-    
-    def call(self, args):
-        # Return mock data for provider calls
-        if args.token == "aws:index/getCallerIdentity:getCallerIdentity":
-            return {"accountId": "123456789012"}
-        return {}
+#### Using Common Mocks
 
-pulumi.runtime.set_mocks(MyMocks(), preview=False)
-```
-
-### Test Patterns
-
-#### Testing Output Values
-
-Since Pulumi properties are `Output` objects (resolved asynchronously), use `.apply()`:
+The easiest way to set up mocks for any test file:
 
 ```python
-@pulumi.runtime.test
-def test_bucket_name(self):
-    bucket = create_s3_bucket(...)
-    
-    def check_name(name):
-        self.assertIn("expected-value", name)
-    
-    return bucket.bucket.apply(check_name)
+import unittest
+import pulumi
+from tests.common import setup_pulumi_mocks
+
+# Set up mocks for all tests in this module
+setup_pulumi_mocks()
+
+class TestMyInfrastructure(unittest.TestCase):
+    @pulumi.runtime.test
+    def test_something(self):
+        # Your test here - mocks are automatically configured
+        pass
 ```
 
-#### Testing Multiple Outputs
+#### Advanced Mock Usage
 
-Use `pulumi.Output.all()` to test multiple properties:
+For more control over mocking:
 
 ```python
-@pulumi.runtime.test
-def test_multiple_properties(self):
-    bucket = create_s3_bucket(...)
-    
-    def check_properties(args):
-        name, tags, arn = args
-        self.assertIsNotNone(name)
-        self.assertEqual(tags["Environment"], "test")
-        self.assertTrue(arn.startswith("arn:aws:s3:::"))
-    
-    return pulumi.Output.all(
-        bucket.bucket,
-        bucket.tags,
-        bucket.arn
-    ).apply(check_properties)
+from tests.common import PulumiTestMocks, get_test_mocks, assert_resource_created
+
+# Custom mock instance
+mocks = PulumiTestMocks()
+pulumi.runtime.set_mocks(mocks, preview=False)
+
+# Access global mock instance
+test_mocks = get_test_mocks()
+
+# Check what resources were created
+assert_resource_created("aws:s3/bucket:Bucket", expected_count=1)
+assert_resource_not_created("aws:s3/bucketVersioning:BucketVersioning")
+
+# Inspect created resources
+created_resources = test_mocks.get_created_resources()
+resource_output = test_mocks.get_resource_output("my-bucket")
 ```
 
-## Test Coverage
+#### Supported AWS Resources
 
-Current test files:
-- `test_s3.py`: Tests for S3 bucket creation functions
-  - Bucket naming conventions
-  - Tag application
-  - Versioning configuration
-  - Encryption configuration
-  - Public access blocking
-  - ARN format validation
+The common mock system supports realistic outputs for:
 
-## Writing New Tests
+- **S3**: Buckets, versioning, encryption, public access blocks
+- **DynamoDB**: Tables with attributes and billing modes
+- **IAM**: Roles, policies, and policy attachments
+- **Lambda**: Functions with ARNs and invoke permissions
+- **API Gateway**: REST APIs, resources, methods, integrations, stages
+- **Provider Calls**: CallerIdentity, regions, availability zones
 
-### 1. Create Test File
+#### Legacy Mock Pattern
 
-Create a new file in `tests/` directory:
+If you need custom mocking behavior, you can still create your own:
+
 ```python
 # tests/test_mymodule.py
 import unittest
 import pulumi
+from tests.common import setup_pulumi_mocks
+
+# Set up mocks for all tests in this module
+setup_pulumi_mocks()
+
+# Import your infrastructure modules (after mocks are set up)
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'infrastructure'))
 from common.mymodule import my_function
 
 class TestMyModule(unittest.TestCase):
@@ -129,19 +127,43 @@ class TestMyModule(unittest.TestCase):
         pass
 ```
 
-### 2. Set Up Mocks
+### 2. Use Common Test Utilities
 
-Define mocks for any resources or provider calls your code uses.
+Take advantage of the centralized mocking and helper functions:
 
-### 3. Write Test Cases
+```python
+from tests.common import (
+    setup_pulumi_mocks, 
+    get_test_mocks, 
+    assert_resource_created,
+    assert_resource_not_created
+)
 
-Use the `@pulumi.runtime.test` decorator for async tests.
+# Set up mocks
+setup_pulumi_mocks()
 
-### 4. Run Tests
+# In your test
+def test_resources_created(self):
+    my_function()
+    
+    # Verify expected resources were created
+    assert_resource_created("aws:s3/bucket:Bucket", expected_count=1)
+    assert_resource_not_created("aws:s3/bucketVersioning:BucketVersioning")
+```
+
+### 3. Run Tests
 
 ```bash
 poetry run pytest tests/test_mymodule.py -v
 ```
+
+## Benefits of Common Mocks
+
+1. **Consistency**: All tests use the same realistic mock responses
+2. **Maintainability**: Update mock behavior in one place
+3. **Reusability**: Easy to add tests for new infrastructure modules
+4. **Rich Features**: Built-in resource tracking and assertion helpers
+5. **Extensibility**: Easy to add support for new AWS resource types
 
 ## Resources
 
