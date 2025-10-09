@@ -91,25 +91,28 @@ def deploy_application_stack(stack_name: str):
     print(f"Deploying application infrastructure for stack: {stack_name}")
     
     # Create an S3 bucket for storing data/assets
-    bucket = aws.s3.Bucket(
-        "api-bucket",
+    bucket = create_s3_bucket(
+        name_prefix="api-bucket",
+        versioning=True,
+        encryption=True,
+        public_access=False,
         tags={
-            "Name": "API Storage Bucket",
+            "Purpose": "App storage bucket",
             "Environment": stack_name,
-        },
+            "ManagedBy": "Pulumi"
+        }
     )
     
     # Create a DynamoDB table
-    dynamodb_table = aws.dynamodb.Table(
-        "api-table",
+    dynamodb_table = create_dynamodb_table(
+        name_prefix="api-table",
+        hash_key="id",
         attributes=[
             aws.dynamodb.TableAttributeArgs(
                 name="id",
                 type="S",
             ),
         ],
-        hash_key="id",
-        billing_mode="PAY_PER_REQUEST",
         tags={
             "Name": "API DynamoDB Table",
             "Environment": stack_name,
