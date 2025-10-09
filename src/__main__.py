@@ -16,6 +16,7 @@ import json
 from common.config import _config
 from common.s3 import create_s3_bucket
 from common.dynamoDB import create_dynamodb_table
+from common.iam import create_lambda_execution_role, create_dynamodb_policy, create_s3_policy
 
 def deploy_stack(stack_name: str):
     if stack_name == "bootstrap":
@@ -120,72 +121,31 @@ def deploy_application_stack(stack_name: str):
     )
     
     # Create an IAM role for the Lambda function
-    lambda_role = aws.iam.Role(
-        "lambda-role",
-        assume_role_policy=json.dumps({
-            "Version": "2012-10-17",
-            "Statement": [{
-                "Action": "sts:AssumeRole",
-                "Principal": {
-                    "Service": "lambda.amazonaws.com",
-                },
-                "Effect": "Allow",
-            }],
-        }),
-    )
-    
-    # Attach basic Lambda execution policy
-    lambda_role_policy = aws.iam.RolePolicyAttachment(
-        "lambda-role-policy",
-        role=lambda_role.name,
-        policy_arn="arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    lambda_role = create_lambda_execution_role(
+        name_prefix="lambda",
+        tags={
+            "Name": "Lambda Execution Role",
+            "Environment": stack_name,
+            "ManagedBy": "Pulumi"
+        }
     )
     
     # Attach policy to allow Lambda to access DynamoDB
-    dynamodb_policy = aws.iam.RolePolicy(
-        "lambda-dynamodb-policy",
-        role=lambda_role.id,
-        policy=pulumi.Output.all(dynamodb_table.arn).apply(
-            lambda args: json.dumps({
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": [
-                        "dynamodb:PutItem",
-                        "dynamodb:GetItem",
-                        "dynamodb:UpdateItem",
-                        "dynamodb:DeleteItem",
-                        "dynamodb:Scan",
-                        "dynamodb:Query",
-                    ],
-                    "Resource": args[0],
-                }],
-            })
-        ),
+    # Options: 'full_access', 'read_only', 'write_only'
+    dynamodb_policy = create_dynamodb_policy(
+        name_prefix="lambda",
+        role=lambda_role,
+        table_arn=dynamodb_table.arn,
+        access_level="full_access"  # Can be easily changed to 'read_only' or 'write_only'
     )
     
     # Attach policy to allow Lambda to access S3
-    s3_policy = aws.iam.RolePolicy(
-        "lambda-s3-policy",
-        role=lambda_role.id,
-        policy=pulumi.Output.all(bucket.arn).apply(
-            lambda args: json.dumps({
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": [
-                        "s3:GetObject",
-                        "s3:PutObject",
-                        "s3:DeleteObject",
-                        "s3:ListBucket",
-                    ],
-                    "Resource": [
-                        args[0],
-                        f"{args[0]}/*",
-                    ],
-                }],
-            })
-        ),
+    # Options: 'full_access', 'read_only', 'write_only', 'list_only'
+    s3_policy = create_s3_policy(
+        name_prefix="lambda",
+        role=lambda_role,
+        bucket_arn=bucket.arn,
+        access_level="full_access"  # Can be easily changed to restrict access
     )
     
     # Create a Lambda function
