@@ -58,7 +58,7 @@ class PulumiConfig:
         self._ensure_initialized()
         return self._region
     
-    def get_default_tags(self, environment: str = None, purpose: str = None) -> dict:
+    def generate_default_tags(self, environment: str = None, purpose: str = None) -> dict:
         """Generate standardized tags for AWS resources."""
         self._ensure_initialized()
         tags = {
