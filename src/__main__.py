@@ -25,50 +25,7 @@ def deploy_bootstrap_stack():
     # Bootstrap Stack: Create S3 bucket and DynamoDB table for Pulumi state storage
     print(f"Deploying bootstrap infrastructure for state storage...")
     
-    # Create a unique bucket name using account ID and region
-    bucket_name = f"pulumi-state-{current.account_id}-{region.name}"
-    
-    # Create S3 bucket for Pulumi state storage
-    state_bucket = aws.s3.Bucket(
-        "pulumi-state-bucket",
-        bucket=bucket_name,
-        tags={
-            "Purpose": "Pulumi State Storage",
-            "Environment": "Bootstrap",
-            "ManagedBy": "Pulumi"
-        }
-    )
-    
-    # Enable versioning on the bucket (important for state file safety)
-    bucket_versioning = aws.s3.BucketVersioning(
-        "pulumi-state-bucket-versioning",
-        bucket=state_bucket.id,
-        versioning_configuration={
-            "status": "Enabled"
-        }
-    )
-    
-    # Enable server-side encryption
-    bucket_encryption = aws.s3.BucketServerSideEncryptionConfiguration(
-        "pulumi-state-bucket-encryption",
-        bucket=state_bucket.id,
-        rules=[{
-            "apply_server_side_encryption_by_default": {
-                "sse_algorithm": "AES256"
-            },
-            "bucket_key_enabled": True
-        }]
-    )
-    
-    # Block public access (security best practice)
-    bucket_public_access_block = aws.s3.BucketPublicAccessBlock(
-        "pulumi-state-bucket-pab",
-        bucket=state_bucket.id,
-        block_public_acls=True,
-        block_public_policy=True,
-        ignore_public_acls=True,
-        restrict_public_buckets=True
-    )
+
     
     # Create DynamoDB table for state locking
     # This prevents multiple users from modifying state simultaneously
