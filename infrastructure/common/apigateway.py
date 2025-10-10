@@ -5,7 +5,6 @@ This module provides a clean abstraction for creating API Gateway REST APIs
 with Lambda proxy integrations, supporting multiple routes and methods.
 """
 
-
 import pulumi
 import pulumi_aws as aws
 

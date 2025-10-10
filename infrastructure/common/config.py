@@ -8,7 +8,6 @@ This module provides centralized access to:
 - Common configuration values
 """
 
-
 import pulumi
 import pulumi_aws as aws
 
