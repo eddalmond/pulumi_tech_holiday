@@ -213,11 +213,12 @@ Alternatively, you can run the underlying command directly:
 
 ```bash
 poetry run pulumi preview \
-	--cwd infrastructure \
-	--stack dev \
-	--policy-pack ../policies/awsguard \
-	--policy-pack-config ../policies/awsguard/policy-config.json \
-	--policy-pack ../policies/python
+  --cwd infrastructure \
+  --stack dev \
+  --policy-pack ../policies/awsguard \
+  --policy-pack-config ../policies/awsguard/policy-config.json \
+  --policy-pack ../policies/python \
+  --policy-pack-config ../policies/python/policy-config.json
 ```
 
 ### Deploy infrastructure

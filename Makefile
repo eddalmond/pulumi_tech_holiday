@@ -59,7 +59,8 @@ policy-preview:
 		--non-interactive \
 		--policy-pack ../policies/awsguard \
 		--policy-pack-config ../policies/awsguard/policy-config.json \
-		--policy-pack ../policies/python
+		--policy-pack ../policies/python \
+		--policy-pack-config ../policies/python/policy-config.json
 
 # Run unit tests with coverage
 test:
