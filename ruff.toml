@@ -49,7 +49,7 @@ exclude = [
 ] # Allow print statements in main infrastructure files
 
 [lint.isort]
-known-first-party = ["infrastructure", "src", "tests"]
+known-first-party = ["common", "infrastructure", "src", "tests"]
 combine-as-imports = true
 split-on-trailing-comma = true
 
