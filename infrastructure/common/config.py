@@ -31,35 +31,45 @@ class PulumiConfig:
     def stack_name(self) -> str:
         """Get the current Pulumi stack name."""
         self._ensure_initialized()
-        assert self._stack_name is not None
+        if self._stack_name is None:
+            raise RuntimeError("Pulumi stack name could not be determined.")
+
         return self._stack_name
 
     @property
     def account_id(self) -> str:
         """Get the current AWS account ID."""
         self._ensure_initialized()
-        assert self._current is not None
+        if self._current is None:
+            raise RuntimeError("AWS caller identity is unavailable.")
+
         return self._current.account_id
 
     @property
     def region_name(self) -> str:
         """Get the current AWS region name."""
         self._ensure_initialized()
-        assert self._region is not None
+        if self._region is None:
+            raise RuntimeError("AWS region information is unavailable.")
+
         return self._region.name
 
     @property
     def aws_caller_identity(self) -> aws.GetCallerIdentityResult:
         """Get the AWS caller identity object."""
         self._ensure_initialized()
-        assert self._current is not None
+        if self._current is None:
+            raise RuntimeError("AWS caller identity is unavailable.")
+
         return self._current
 
     @property
     def aws_region(self) -> aws.GetRegionResult:
         """Get the AWS region object."""
         self._ensure_initialized()
-        assert self._region is not None
+        if self._region is None:
+            raise RuntimeError("AWS region information is unavailable.")
+
         return self._region
 
     def generate_default_tags(
@@ -67,8 +77,8 @@ class PulumiConfig:
     ) -> dict[str, str]:
         """Generate standardized tags for AWS resources."""
         self._ensure_initialized()
-        assert self._stack_name is not None
-        assert self._region is not None
+        if self._stack_name is None or self._region is None:
+            raise RuntimeError("Pulumi stack metadata is unavailable for tagging.")
         tags = {
             "ManagedBy": "Pulumi",
             "Stack": self._stack_name,
