@@ -78,7 +78,7 @@ pulumi up
 >
 > A: Presumably I can use the `pulumi.export` stuff below
 
-Created a `deploy_bootstrap_stack` function to deal with creating the s3 bucket and associated lock record in dynamoDB in `src/**main**.py`
+Created a `deploy_bootstrap_stack` function to deal with creating the s3 bucket and associated lock record in dynamoDB in `src/main.py`
 
 This is created with a local state file. In order to transfer to s3:
 
