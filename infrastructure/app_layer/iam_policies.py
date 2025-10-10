@@ -14,7 +14,7 @@ from common.iam import create_custom_policy
 def create_lambda_execution_role(
     name_prefix: str,
     additional_policies: list[str] | None = None,
-    tags: dict | None = None,
+    tags: dict[str, str] | None = None,
 ) -> aws.iam.Role:
     """
     Create an IAM role for Lambda function execution with basic permissions.
@@ -70,7 +70,7 @@ def create_lambda_execution_role(
 def create_dynamodb_policy(
     name_prefix: str,
     role: aws.iam.Role,
-    table_arn: str,
+    table_arn: str | pulumi.Output[str],
     access_level: str = "full_access",
 ) -> aws.iam.RolePolicy:
     """
@@ -86,7 +86,7 @@ def create_dynamodb_policy(
         The created role policy resource
     """
 
-    def create_policy_doc(arn):
+    def create_policy_doc(arn: str) -> str:
         statement = create_dynamodb_policy_statement(arn, access_level)
         return json.dumps({"Version": "2012-10-17", "Statement": [statement]})
 
@@ -106,7 +106,7 @@ def create_dynamodb_policy(
 def create_s3_policy(
     name_prefix: str,
     role: aws.iam.Role,
-    bucket_arn: str,
+    bucket_arn: str | pulumi.Output[str],
     access_level: str = "full_access",
 ) -> aws.iam.RolePolicy:
     """
@@ -122,7 +122,7 @@ def create_s3_policy(
         The created role policy resource
     """
 
-    def create_policy_doc(arn):
+    def create_policy_doc(arn: str) -> str:
         statements = create_s3_policy_statement(arn, access_level)
         return json.dumps({"Version": "2012-10-17", "Statement": statements})
 
@@ -140,7 +140,9 @@ def create_s3_policy(
 
 
 def create_cloudwatch_logs_policy(
-    name_prefix: str, role: aws.iam.Role, log_group_arn: str = "*"
+    name_prefix: str,
+    role: aws.iam.Role,
+    log_group_arn: str = "*",
 ) -> aws.iam.RolePolicy:
     """
     Create an inline policy for CloudWatch Logs access.

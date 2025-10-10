@@ -17,7 +17,7 @@ from bootstrap.bootstrap import deploy_bootstrap_stack
 from common.config import _config
 
 
-def deploy_stack(stack_name: str):
+def deploy_stack(stack_name: str) -> None:
     if stack_name == "bootstrap":
         deploy_bootstrap_stack()
     else:

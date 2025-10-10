@@ -16,7 +16,7 @@ from common.dynamodb import create_dynamodb_table
 from common.s3 import create_s3_bucket
 
 
-def deploy_application_stack(stack_name: str):
+def deploy_application_stack(stack_name: str) -> None:
     # Create an S3 bucket for storing data/assets
     s3_resources = create_s3_bucket(
         name_prefix="api-bucket",

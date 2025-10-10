@@ -5,6 +5,8 @@ This module provides a clean abstraction for creating API Gateway REST APIs
 with Lambda proxy integrations, supporting multiple routes and methods.
 """
 
+from collections.abc import Sequence
+
 import pulumi
 import pulumi_aws as aws
 
@@ -62,7 +64,7 @@ class LambdaRestApi:
     def add_proxy_route(
         self,
         path: str = "{proxy+}",
-        methods: list[str] = None,
+        methods: Sequence[str] | None = None,
         authorization: str = "NONE",
     ) -> None:
         """
@@ -73,8 +75,7 @@ class LambdaRestApi:
             methods: List of HTTP methods (default: ["ANY"])
             authorization: Authorization type (default: "NONE")
         """
-        if methods is None:
-            methods = ["ANY"]
+        method_list = list(methods) if methods is not None else ["ANY"]
 
         # Create resource for the path
         resource = aws.apigateway.Resource(
@@ -85,7 +86,7 @@ class LambdaRestApi:
         )
 
         # Add methods for this resource
-        for method in methods:
+        for method in method_list:
             self._add_method_with_lambda_integration(
                 resource_id=resource.id,
                 http_method=method,
@@ -94,7 +95,9 @@ class LambdaRestApi:
             )
 
     def add_root_route(
-        self, methods: list[str] = None, authorization: str = "NONE"
+        self,
+        methods: Sequence[str] | None = None,
+        authorization: str = "NONE",
     ) -> None:
         """
         Add methods to the root resource (/).
@@ -103,10 +106,9 @@ class LambdaRestApi:
             methods: List of HTTP methods (default: ["ANY"])
             authorization: Authorization type (default: "NONE")
         """
-        if methods is None:
-            methods = ["ANY"]
+        method_list = list(methods) if methods is not None else ["ANY"]
 
-        for method in methods:
+        for method in method_list:
             self._add_method_with_lambda_integration(
                 resource_id=self.rest_api.root_resource_id,
                 http_method=method,

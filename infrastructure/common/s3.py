@@ -15,7 +15,9 @@ class S3BucketResources:
     public_access_block: aws.s3.BucketPublicAccessBlock | None = None
 
 
-def enable_versioning(bucket: aws.s3.Bucket, name_prefix: str):
+def enable_versioning(
+    bucket: aws.s3.Bucket, name_prefix: str
+) -> aws.s3.BucketVersioning:
     """
     Enables versioning on the specified AWS S3 bucket.
 
@@ -34,7 +36,9 @@ def enable_versioning(bucket: aws.s3.Bucket, name_prefix: str):
     return bucket_versioning
 
 
-def enable_encryption(bucket: aws.s3.Bucket, name_prefix: str):
+def enable_encryption(
+    bucket: aws.s3.Bucket, name_prefix: str
+) -> aws.s3.BucketServerSideEncryptionConfiguration:
     """
     Enables server-side encryption for the specified AWS S3 bucket using AES256 algorithm.
 
@@ -61,7 +65,9 @@ def enable_encryption(bucket: aws.s3.Bucket, name_prefix: str):
     return bucket_encryption
 
 
-def enable_public_access_block(bucket: aws.s3.Bucket, name_prefix: str):
+def enable_public_access_block(
+    bucket: aws.s3.Bucket, name_prefix: str
+) -> aws.s3.BucketPublicAccessBlock:
     """
     Enables a public access block on the specified AWS S3 bucket to restrict public access.
 
@@ -95,7 +101,7 @@ def create_s3_bucket(
     versioning: bool,
     encryption: bool,
     public_access_block: bool,
-    tags: dict | None,
+    tags: dict[str, str] | None,
 ) -> S3BucketResources:
     """
     Create an S3 bucket with optional security configurations.
@@ -117,9 +123,9 @@ def create_s3_bucket(
     bucket = aws.s3.Bucket(f"{name_prefix}-bucket", bucket=bucket_name, tags=tags or {})
 
     # Create optional resources and track them
-    versioning_resource = None
-    encryption_resource = None
-    public_access_block_resource = None
+    versioning_resource: aws.s3.BucketVersioning | None = None
+    encryption_resource: aws.s3.BucketServerSideEncryptionConfiguration | None = None
+    public_access_block_resource: aws.s3.BucketPublicAccessBlock | None = None
 
     if versioning:
         versioning_resource = enable_versioning(bucket, name_prefix)
