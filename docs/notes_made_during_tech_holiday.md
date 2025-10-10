@@ -2,7 +2,7 @@
 
 ## Environment
 
-I’m using a WSL2 Ubuntu 24.4 image from the Microsoft Store / WSL command line
+I’m using a WSL2 Ubuntu 24.04 image from the Microsoft Store / WSL command line
 
 ## AWS account
 
