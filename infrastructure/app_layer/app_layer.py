@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import pulumi
 import pulumi_aws as aws
 from api_gateway import create_lambda_rest_api
-from common.dynamoDB import create_dynamodb_table
+from common.dynamodb import create_dynamodb_table
 from common.s3 import create_s3_bucket
 from iam_policies import (
     create_dynamodb_policy,
@@ -16,9 +16,6 @@ from iam_policies import (
 
 
 def deploy_application_stack(stack_name: str):
-    # Application Stack: Create the main infrastructure
-    print(f"Deploying application infrastructure for stack: {stack_name}")
-
     # Create an S3 bucket for storing data/assets
     s3_resources = create_s3_bucket(
         name_prefix="api-bucket",
@@ -60,7 +57,7 @@ def deploy_application_stack(stack_name: str):
 
     # Attach policy to allow Lambda to access DynamoDB
     # Options: 'full_access', 'read_only', 'write_only'
-    dynamodb_policy = create_dynamodb_policy(
+    _ = create_dynamodb_policy(
         name_prefix="lambda",
         role=lambda_role,
         table_arn=dynamodb_table.arn,
@@ -69,7 +66,7 @@ def deploy_application_stack(stack_name: str):
 
     # Attach policy to allow Lambda to access S3
     # Options: 'full_access', 'read_only', 'write_only', 'list_only'
-    s3_policy = create_s3_policy(
+    _ = create_s3_policy(
         name_prefix="lambda",
         role=lambda_role,
         bucket_arn=s3_resources.bucket.arn,
@@ -96,7 +93,7 @@ def deploy_application_stack(stack_name: str):
     )
 
     # Create REST API with Lambda integration
-    api, stage, api_url = create_lambda_rest_api(
+    _, _, api_url = create_lambda_rest_api(
         name="api",
         lambda_function=lambda_function,
         stage_name=stack_name,

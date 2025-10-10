@@ -1,4 +1,3 @@
-
 import pulumi_aws as aws
 
 from .config import _config
@@ -10,9 +9,7 @@ def create_dynamodb_table(
     attributes: list | None = None,
     tags: dict | None = None,
 ) -> aws.dynamodb.Table:
-    """
-    Create a DynamoDB table for state locking.
-    """
+    """Create a DynamoDB table for state locking."""
     dynamodb_table = aws.dynamodb.Table(
         f"{name_prefix}",
         name=f"{name_prefix}-{_config.account_id}",

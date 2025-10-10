@@ -13,14 +13,13 @@ import pulumi
 # Set up path for infrastructure imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "infrastructure"))
 
-# Import common test utilities
+# Import common test utilities and infrastructure helpers
+from common.config import _config
+from common.s3 import create_s3_bucket
 from tests.common import setup_pulumi_mocks
 
 # Set up mocks for all tests in this module
 setup_pulumi_mocks()
-
-from common.config import _config
-from common.s3 import create_s3_bucket
 
 
 class TestS3BusinessLogic(unittest.TestCase):

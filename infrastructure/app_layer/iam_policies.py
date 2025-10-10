@@ -48,7 +48,7 @@ def create_lambda_execution_role(
     )
 
     # Attach basic Lambda execution policy
-    basic_policy_attachment = aws.iam.RolePolicyAttachment(
+    _ = aws.iam.RolePolicyAttachment(
         f"{name_prefix}-basic-policy",
         role=role.name,
         policy_arn="arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
