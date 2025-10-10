@@ -2,12 +2,12 @@ import json
 
 import pulumi
 import pulumi_aws as aws
-from pulumi import Input
 from policy_config import (
     create_cloudwatch_logs_policy_statement,
     create_dynamodb_policy_statement,
     create_s3_policy_statement,
 )
+from pulumi import Input
 
 from common.iam import create_custom_policy
 
