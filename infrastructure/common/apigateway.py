@@ -7,7 +7,6 @@ with Lambda proxy integrations, supporting multiple routes and methods.
 
 import pulumi
 import pulumi_aws as aws
-
 from common.config import _config
 
 
