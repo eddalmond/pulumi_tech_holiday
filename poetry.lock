@@ -1255,6 +1255,22 @@ pulumi = ">=3.165.0,<4.0.0"
 semver = ">=2.8.1"
 
 [[package]]
+name = "pulumi-policy"
+version = "1.18.1"
+description = "Pulumi's Policy Python SDK"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pulumi_policy-1.18.1-py2.py3-none-any.whl", hash = "sha256:dc5ee4ab1cef3bedb7f0105d806dce37bc43f4b5c2b211c6347a31c3d72f057f"},
+]
+
+[package.dependencies]
+grpcio = ">=1.71,<2.0"
+protobuf = ">=5.29.5,<5.30.0"
+pulumi = ">=3.196.0,<4.0.0"
+setuptools = ">=61.0"
+
+[[package]]
 name = "pycparser"
 version = "2.23"
 description = "C parser in Python"
@@ -2119,4 +2135,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "44a837ff6473f2a6a95385a51e301f0bf15fd93d17474ec80edf0f88520ef70f"
+content-hash = "8e76d5d2b273852d579eea61d7621a7f33843bcc3d32995ea2903ed6c8a0779b"

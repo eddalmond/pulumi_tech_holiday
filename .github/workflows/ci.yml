@@ -34,11 +34,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Install additional linting tools
-        run: |
-          poetry add --group dev ruff black isort mypy bandit safety
+        run: poetry install --no-interaction --no-root --with dev
 
       - name: Run Ruff (linting)
         run: |
@@ -105,7 +101,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Install project dependencies
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction --no-root --with dev
 
       - name: Set up Node.js for policy pack
         uses: actions/setup-node@v4
@@ -121,10 +117,10 @@ jobs:
         working-directory: policies/awsguard
         run: npm install
 
-      - name: Install Pulumi Policy as Code (optional advanced checks)
+      - name: Validate Python policy pack import
         run: |
-          # Install pulumi policy pack for additional checks
-          poetry run pip install pulumi-policy
+          # Ensure the Python policy pack loads before running preview
+          poetry run python -c "from policies.python.policies import register_policy_pack; register_policy_pack()"
 
       - name: Run Pulumi preview with AWSGuard
         run: |
@@ -137,7 +133,8 @@ jobs:
             --cwd infrastructure \
             --non-interactive \
             --policy-pack ../policies/awsguard \
-            --policy-pack-config ../policies/awsguard/policy-config.json
+            --policy-pack-config ../policies/awsguard/policy-config.json \
+            --policy-pack ../policies/python
 
   unit-tests:
     name: Unit Tests
@@ -168,11 +165,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Add test dependencies
-        run: |
-          poetry add --group dev pytest-cov pytest-html pytest-xdist
+        run: poetry install --no-interaction --no-root --with dev
 
       - name: Run unit tests with coverage
         run: |

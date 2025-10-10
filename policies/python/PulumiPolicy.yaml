@@ -1,0 +1,3 @@
+name: python-guardrails
+main: __main__.py
+runtime: python

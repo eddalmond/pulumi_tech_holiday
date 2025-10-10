@@ -23,6 +23,7 @@ safety = "^3.6.2"
 pytest-cov = "^7.0.0"
 pytest-html = "^4.1.1"
 pytest-xdist = "^3.8.0"
+pulumi-policy = "^1.18.1"
 
 [build-system]
 requires = ["poetry-core"]
