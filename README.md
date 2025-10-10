@@ -287,24 +287,33 @@ The following enhancements can be added:
 
 ```text
 .
+├── infrastructure/
+│   ├── __main__.py          # Entry point that wires the stacks together
+│   ├── app_layer/           # Application infrastructure (API Gateway, Lambda, IAM policies)
+│   ├── bootstrap/           # Stack that provisions state storage for Pulumi
+│   └── common/              # Reusable building blocks (config, S3, DynamoDB, IAM helpers)
+├── policies/
+│   ├── awsguard/            # TypeScript AWSGuard policy pack and config
+│   └── python/              # Python-based custom policy pack
 ├── src/
-│   └── __main__.py          # Main Pulumi program with conditional deployment logic
-├── Pulumi.yaml              # Pulumi project configuration  
-├── pyproject.toml           # Poetry dependencies and project config
+│   └── lambda/app.py        # Sample Lambda handler used by the app layer
+├── tests/                   # Pytest suite for infra helpers and policy packs
+├── Pulumi.yaml              # Pulumi project configuration
+├── Pulumi.<stack>.yaml      # Stack-specific configuration files (e.g. dev, bootstrap)
+├── pyproject.toml           # Poetry project and dependency declarations
 ├── poetry.lock              # Locked dependency versions
-├── README.md                # This file
-├── .gitignore               # Git ignore patterns
-└── requirements.txt         # Legacy Python dependencies (replaced by Poetry)
+├── Makefile                 # Helper targets (preview, policy checks, etc.)
+├── README.md                # Project documentation
 ```
 
 ### Code Organization
 
-The project uses a **unified approach** with conditional deployment:
+The Pulumi program is organised into focused modules:
 
-- **Single `__main__.py`**: Contains both bootstrap and application infrastructure code
-- **Stack-based routing**: Deploys different resources based on `pulumi.get_stack()` name
-- **Bootstrap stack**: Creates S3 bucket and DynamoDB table for state storage
-- **Application stacks**: Creates API Gateway, Lambda, S3, DynamoDB for your application
+- `infrastructure/__main__.py` selects the active stack and composes the bootstrap and application layers.
+- `infrastructure/bootstrap/` provisions the S3 bucket and DynamoDB table used as the Pulumi state backend.
+- `infrastructure/app_layer/` defines the API Gateway, Lambda function, IAM policies, and related resources for the application stacks.
+- `infrastructure/common/` holds shared abstractions for AWS services plus configuration helpers reused across stacks.
 
 ### Dependencies
 

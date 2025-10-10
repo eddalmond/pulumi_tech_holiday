@@ -1,33 +1,42 @@
 # CI/CD Pipeline Documentation
 
-This project includes a comprehensive CI/CD pipeline that ensures code quality, security, and reliability.
+This project ships with a GitHub Actions workflow that validates infrastructure code, enforces security guardrails, and keeps the Python codebase healthy.
 
 ## Pipeline Overview
 
-The GitHub Actions workflow (`.github/workflows/ci.yml`) includes three main stages:
+The GitHub Actions workflow (`.github/workflows/ci.yml`) is triggered on every pull request event (`opened`, `synchronize`, `reopened`). It runs four coordinated jobs:
 
-### 1. Code Quality & Linting
-- **Ruff**: Fast Python linter and formatter
-- **Black**: Code formatting
-- **isort**: Import sorting
-- **MyPy**: Static type checking
-- **Bandit**: Security linting
-- **Safety**: Dependency vulnerability scanning
+### 1. Code Quality & Security Scans (`lint-and-format`)
 
-### 2. Infrastructure Security & Compliance
-- **Checkov**: Infrastructure as Code security scanning
-- **TFSEC**: Terraform security analysis (for converted Pulumi code)
-- **Terrascan**: Multi-cloud security scanning
-- **Pulumi Policy as Code**: Custom policy validation
+- **Ruff**: Linting (`ruff check`) and format enforcement (`ruff format --check`)
+- **Black**: Formatting parity check (`black --check --diff`)
+- **MyPy**: Static type checking over `infrastructure/` and `src/`
+- **Bandit**: Python security linting (JSON artifact + console output)
+- **Safety**: Dependency vulnerability scanning (JSON artifact + console output)
+- **Poetry Cache**: Reuses the `.venv` directory when the `poetry.lock` hash is unchanged
 
-### 3. Unit Tests
-- **pytest**: Unit test execution
-- **Coverage**: Code coverage reporting
-- **HTML Reports**: Detailed test and coverage reports
+### 2. Policy-Driven Infrastructure Preview (`pulumi-security-checks`)
+
+- Installs the Pulumi CLI and logs into an ephemeral file-backed backend
+- Ensures the `dev` stack exists before previewing
+- Runs `pulumi preview` against `infrastructure/` with both the AWSGuard (TypeScript) and bespoke Python policy packs
+- Compiles the Python policy pack to surface syntax issues quickly
+- Requires AWS credentials and a Pulumi config passphrase via repository secrets
+
+### 3. Unit Tests & Coverage (`unit-tests`)
+
+- Executes the `pytest` suite under Poetry
+- Produces terminal, XML, and HTML coverage reports for `infrastructure/` and `src/`
+- Publishes JUnit XML, HTML test report, and the `htmlcov/` directory as artifacts
+
+### 4. Build Summary (`summary`)
+
+- Aggregates status from preceding jobs
+- Fails the workflow with a helpful message if any dependency job fails
 
 ## Running Locally
 
-Use the provided Makefile to run the same checks locally:
+Use the provided `Makefile` to mirror the CI workflow locally (Make targets wrap Poetry commands and optional extras such as Checkov):
 
 ```bash
 # Install all dependencies
@@ -39,110 +48,106 @@ make format
 # Run linting checks
 make lint
 
-# Run security checks
+# Run security checks (Bandit, Safety, Checkov)
 make security
 
 # Run unit tests
 make test
 
-# Run full CI pipeline locally
+# Run full CI pipeline locally (lint → security → tests)
 make ci
 
-# Quick pre-commit check
+# Format + lint combo before committing
 make pre-commit
 ```
 
 ## Configuration Files
 
-- `ruff.toml`: Ruff linter configuration
-- `pyproject.toml`: Python project configuration (includes mypy, black, isort, pytest, coverage, bandit)
-- `.checkov.yml`: Checkov security scanner configuration
+- `pyproject.toml`: Poetry project configuration plus tool settings for Ruff, Black, MyPy, pytest, coverage, Bandit, and Safety
+- `ruff.toml`: Ruff rules and formatter preferences
+- `Makefile`: One-stop entry point for local formatting, linting, testing, security scans, and Pulumi preview
+- `policies/awsguard/policy-config.json`: Configuration for the AWSGuard policy pack executed during `pulumi preview`
+- `policies/python/policy-config.json`: Settings for the custom Python policy pack
 
 ## CI/CD Triggers
 
-The pipeline runs on:
-- Push to `main` or `develop` branches
-- Pull requests to `main` or `develop` branches
+The workflow currently runs on pull request events only (`opened`, `synchronize`, `reopened`).
+Add additional triggers (for example branch pushes or scheduled runs) by editing the `on:` block in `.github/workflows/ci.yml`.
 
 ## Required Secrets
 
-For full functionality, configure these GitHub repository secrets:
+The policy preview job needs these repository secrets:
 
-- `AWS_ACCESS_KEY_ID`: AWS access key for infrastructure validation
-- `AWS_SECRET_ACCESS_KEY`: AWS secret key for infrastructure validation  
-- `PULUMI_ACCESS_TOKEN`: Pulumi Cloud access token for state management
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_REGION`
+- `PULUMI_CONFIG_PASSPHRASE` (can be empty but must be present)
+
+Because the workflow uses a local file-backed backend for Pulumi previews, a `PULUMI_ACCESS_TOKEN` is not required.
 
 ## Workflow Jobs
 
-### lint-and-format
-- Installs Python dependencies
-- Runs code quality tools
-- Uploads security reports as artifacts
+### lint-and-format (Code Quality & Linting)
 
-### pulumi-security-checks  
-- Runs infrastructure security scanning
-- Generates compliance reports
-- Uploads scan results as artifacts
+- Installs Poetry and project dependencies (cached virtualenv when possible)
+- Runs Ruff lint/format checks, Black, MyPy, Bandit, and Safety
+- Uploads Bandit and Safety JSON reports as `security-reports`
 
-### unit-tests
-- Executes test suite with coverage
-- Generates test reports
-- Uploads test artifacts
-- Optional Codecov integration
+### pulumi-security-checks (Infrastructure Policy Preview)
 
-### integration-check
-- Validates infrastructure changes
-- Runs Pulumi preview (dry-run)
-- Only runs on pull requests
+- Installs Poetry, Pulumi CLI, Node.js, and policy-pack dependencies
+- Compiles the Python policy pack to detect syntax issues
+- Runs `pulumi preview` with both policy packs to gate infrastructure changes
 
-### summary
-- Aggregates results from all jobs
-- Provides overall pass/fail status
+### unit-tests (Test Suite & Coverage)
+
+- Executes `pytest` with coverage for `infrastructure/` and `src/`
+- Emits HTML + XML reports and uploads them as `test-results`
+
+### summary (Build Summary)
+
+- Prints individual job outcomes
+- Fails fast if any prerequisite job fails
 
 ## Artifacts
 
-The pipeline generates several artifacts:
+The workflow exposes these downloadable artifacts on each run:
 
-- **Security Reports**: Bandit and Safety scan results
-- **Checkov Reports**: Infrastructure security findings  
-- **Test Results**: JUnit XML and HTML test reports
-- **Coverage Reports**: HTML coverage reports
+- **security-reports**: `bandit-report.json`, `safety-report.json`
+- **test-results**: `pytest-results.xml`, `pytest-report.html`, `htmlcov/`
 
 ## Customization
 
-### Skip Certain Checks
+### Skip or Tune Specific Checks
 
-Edit the configuration files to skip specific checks:
+- `ruff.toml`: Add rule codes to `ignore` or `extend-select`
+- `pyproject.toml`: Update configuration blocks for MyPy, Bandit, Safety, pytest, and coverage
+- `Makefile`: Remove or adjust commands for local workflows (for example disable Checkov if not needed)
 
-- `ruff.toml`: Add check codes to `ignore` list
-- `.checkov.yml`: Add check IDs to `skip-check` list  
-- `pyproject.toml`: Modify tool-specific configurations
+### Add More Automation
 
-### Add More Tools
+1. Extend `.github/workflows/ci.yml` with extra steps or jobs
+2. Add matching Make targets so contributors can replicate changes locally
+3. Capture additional artifacts with `actions/upload-artifact`
 
-Extend the workflow by adding more security or quality tools:
+### Environment-Specific Extensions
 
-1. Add installation commands to the workflow
-2. Add execution steps
-3. Update the Makefile for local development
-
-### Environment-Specific Configuration
-
-The workflow supports different environments:
-- Development: Full validation and preview
-- Production: Additional deployment steps (can be added)
+- Add a deployment job that depends on `summary`
+- Parameterize stack names, policy packs, or AWS regions through workflow inputs or repository variables
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **MyPy Import Errors**: Add problematic modules to the `ignore_missing_imports` list
-2. **Ruff Violations**: Fix automatically with `make format` or configure exceptions
-3. **Checkov False Positives**: Add specific check IDs to the skip list
-4. **Test Failures**: Run `make test` locally for detailed debugging
+1. **MyPy import errors**: Update `pyproject.toml` under `[tool.mypy]` or use the `--ignore-missing-imports` flag locally
+2. **Ruff violations**: Run `make format` to apply Ruff + Black or tailor ignore lists in `ruff.toml`
+3. **Bandit/Safety findings**: Review the JSON artifacts for context, then suppress intentionally via `pyproject.toml` or upgrade dependencies
+4. **Pulumi preview failures**: Re-run `make policy-preview STACK=dev` locally to reproduce and iterate
+5. **Test failures**: Execute `make test` for detailed pytest output and coverage reports
 
 ### Getting Help
 
 - Check the workflow logs in GitHub Actions
 - Run individual tools locally using the Makefile
 - Review tool documentation for specific configuration options
+
