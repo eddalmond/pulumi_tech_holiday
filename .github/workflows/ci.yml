@@ -117,10 +117,10 @@ jobs:
         working-directory: policies/awsguard
         run: npm install
 
-      - name: Validate Python policy pack import
+      - name: Validate Python policy pack syntax
         run: |
-          # Ensure the Python policy pack loads before running preview
-          poetry run python -c "from policies.python.policies import register_policy_pack; register_policy_pack()"
+          # Byte-compile the policy pack to catch syntax errors without full registration
+          poetry run python -m compileall policies/python
 
       - name: Run Pulumi preview with AWSGuard
         run: |

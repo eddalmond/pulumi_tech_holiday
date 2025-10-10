@@ -34,6 +34,9 @@ def _s3_managed_by_tag_validator(
 
 def register_policy_pack() -> None:
     """Register the Python policy pack used in CI and local previews."""
+    # The PolicyPack constructor expects to be executed by the Pulumi engine.
+    # Avoid calling this function directly in ad-hoc scripts; the engine handshake
+    # will block and appear to hang (which was the source of the slow CI step).
     PolicyPack(
         name="python-guardrails",
         policies=[
