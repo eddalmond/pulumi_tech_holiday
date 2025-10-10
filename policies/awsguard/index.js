@@ -4,4 +4,7 @@ const { AwsGuard } = require("@pulumi/awsguard");
 // provide a policy configuration file if you need stack-specific overrides.
 new AwsGuard({
   all: "mandatory",
+  apigatewayEndpointType: "advisory",
+  apigatewayStageCached: "advisory",
+  s3BucketLoggingEnabled: "advisory",
 });
