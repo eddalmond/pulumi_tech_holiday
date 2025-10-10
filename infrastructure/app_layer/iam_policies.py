@@ -2,6 +2,7 @@ import json
 
 import pulumi
 import pulumi_aws as aws
+from pulumi import Input
 from policy_config import (
     create_cloudwatch_logs_policy_statement,
     create_dynamodb_policy_statement,
@@ -90,6 +91,8 @@ def create_dynamodb_policy(
         statement = create_dynamodb_policy_statement(arn, access_level)
         return json.dumps({"Version": "2012-10-17", "Statement": [statement]})
 
+    policy_document: Input[str]
+
     # If it's a Pulumi Output, use apply to transform it
     if isinstance(table_arn, pulumi.Output):
         policy_document = table_arn.apply(create_policy_doc)
@@ -125,6 +128,8 @@ def create_s3_policy(
     def create_policy_doc(arn: str) -> str:
         statements = create_s3_policy_statement(arn, access_level)
         return json.dumps({"Version": "2012-10-17", "Statement": statements})
+
+    policy_document: Input[str]
 
     # If it's a Pulumi Output, use apply to transform it
     if isinstance(bucket_arn, pulumi.Output):
