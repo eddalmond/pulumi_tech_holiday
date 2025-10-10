@@ -13,10 +13,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from app_layer.app_layer import deploy_application_stack
 from bootstrap.bootstrap import deploy_bootstrap_stack
+
 from common.config import _config
 
 
-def deploy_stack(stack_name: str):
+def deploy_stack(stack_name: str) -> None:
     if stack_name == "bootstrap":
         deploy_bootstrap_stack()
     else:

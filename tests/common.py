@@ -5,7 +5,7 @@ This module provides reusable mock classes and helper functions that can be
 shared across all test modules in the test suite.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 import pulumi
 
@@ -30,8 +30,8 @@ class PulumiTestMocks(pulumi.runtime.Mocks):
     """
 
     def __init__(self):
-        self.created_resources: List[str] = []
-        self.resource_outputs: Dict[str, Dict[str, Any]] = {}
+        self.created_resources: list[str] = []
+        self.resource_outputs: dict[str, dict[str, Any]] = {}
 
     def new_resource(self, args: pulumi.runtime.MockResourceArgs):
         """
@@ -288,11 +288,11 @@ class PulumiTestMocks(pulumi.runtime.Mocks):
         self.created_resources = []
         self.resource_outputs = {}
 
-    def get_created_resources(self) -> List[str]:
+    def get_created_resources(self) -> list[str]:
         """Get list of all resource types that were created."""
         return self.created_resources.copy()
 
-    def get_resource_output(self, resource_name: str) -> Dict[str, Any]:
+    def get_resource_output(self, resource_name: str) -> dict[str, Any]:
         """Get the mock outputs for a specific resource."""
         return self.resource_outputs.get(resource_name, {})
 

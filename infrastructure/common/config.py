@@ -8,8 +8,6 @@ This module provides centralized access to:
 - Common configuration values
 """
 
-from typing import Optional
-
 import pulumi
 import pulumi_aws as aws
 
@@ -17,12 +15,12 @@ import pulumi_aws as aws
 class PulumiConfig:
     """Centralized configuration for Pulumi AWS resources."""
 
-    def __init__(self):
-        self._stack_name: Optional[str] = None
-        self._current: Optional[aws.GetCallerIdentityResult] = None
-        self._region: Optional[aws.GetRegionResult] = None
+    def __init__(self) -> None:
+        self._stack_name: str | None = None
+        self._current: aws.GetCallerIdentityResult | None = None
+        self._region: aws.GetRegionResult | None = None
 
-    def _ensure_initialized(self):
+    def _ensure_initialized(self) -> None:
         """Lazy initialization of AWS resources."""
         if self._stack_name is None:
             self._stack_name = pulumi.get_stack()
@@ -33,37 +31,54 @@ class PulumiConfig:
     def stack_name(self) -> str:
         """Get the current Pulumi stack name."""
         self._ensure_initialized()
+        if self._stack_name is None:
+            raise RuntimeError("Pulumi stack name could not be determined.")
+
         return self._stack_name
 
     @property
     def account_id(self) -> str:
         """Get the current AWS account ID."""
         self._ensure_initialized()
+        if self._current is None:
+            raise RuntimeError("AWS caller identity is unavailable.")
+
         return self._current.account_id
 
     @property
     def region_name(self) -> str:
         """Get the current AWS region name."""
         self._ensure_initialized()
+        if self._region is None:
+            raise RuntimeError("AWS region information is unavailable.")
+
         return self._region.name
 
     @property
-    def aws_caller_identity(self):
+    def aws_caller_identity(self) -> aws.GetCallerIdentityResult:
         """Get the AWS caller identity object."""
         self._ensure_initialized()
+        if self._current is None:
+            raise RuntimeError("AWS caller identity is unavailable.")
+
         return self._current
 
     @property
-    def aws_region(self):
+    def aws_region(self) -> aws.GetRegionResult:
         """Get the AWS region object."""
         self._ensure_initialized()
+        if self._region is None:
+            raise RuntimeError("AWS region information is unavailable.")
+
         return self._region
 
     def generate_default_tags(
-        self, environment: str = None, purpose: str = None
-    ) -> dict:
+        self, environment: str | None = None, purpose: str | None = None
+    ) -> dict[str, str]:
         """Generate standardized tags for AWS resources."""
         self._ensure_initialized()
+        if self._stack_name is None or self._region is None:
+            raise RuntimeError("Pulumi stack metadata is unavailable for tagging.")
         tags = {
             "ManagedBy": "Pulumi",
             "Stack": self._stack_name,

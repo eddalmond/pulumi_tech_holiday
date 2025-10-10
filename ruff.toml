@@ -1,6 +1,8 @@
 # Ruff configuration file
 target-version = "py313"
 line-length = 88
+
+[lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -33,9 +35,12 @@ exclude = [
     "build",
 ]
 
-[per-file-ignores]
+[lint.per-file-ignores]
 "tests/*" = [
     "S101",
+    "S105",
+    "I001",
+    "PT009",
     "PT011",
     "PT012",
 ] # Allow assert in tests, ignore specific pytest rules
@@ -43,11 +48,11 @@ exclude = [
     "T20",
 ] # Allow print statements in main infrastructure files
 
-[isort]
-known-first-party = ["infrastructure", "src", "tests"]
+[lint.isort]
+known-first-party = ["common", "infrastructure", "src", "tests"]
 combine-as-imports = true
 split-on-trailing-comma = true
 
-[flake8-pytest-style]
+[lint.flake8-pytest-style]
 fixture-parentheses = false
 parametrize-names-type = "list"

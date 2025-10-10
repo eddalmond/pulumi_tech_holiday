@@ -1,20 +1,21 @@
 import json
-from typing import List, Optional
 
 import pulumi
 import pulumi_aws as aws
-from common.iam import create_custom_policy
 from policy_config import (
     create_cloudwatch_logs_policy_statement,
     create_dynamodb_policy_statement,
     create_s3_policy_statement,
 )
+from pulumi import Input
+
+from common.iam import create_custom_policy
 
 
 def create_lambda_execution_role(
     name_prefix: str,
-    additional_policies: Optional[List[str]] = None,
-    tags: Optional[dict] = None,
+    additional_policies: list[str] | None = None,
+    tags: dict[str, str] | None = None,
 ) -> aws.iam.Role:
     """
     Create an IAM role for Lambda function execution with basic permissions.
@@ -49,7 +50,7 @@ def create_lambda_execution_role(
     )
 
     # Attach basic Lambda execution policy
-    basic_policy_attachment = aws.iam.RolePolicyAttachment(
+    _ = aws.iam.RolePolicyAttachment(
         f"{name_prefix}-basic-policy",
         role=role.name,
         policy_arn="arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -70,7 +71,7 @@ def create_lambda_execution_role(
 def create_dynamodb_policy(
     name_prefix: str,
     role: aws.iam.Role,
-    table_arn: str,
+    table_arn: str | pulumi.Output[str],
     access_level: str = "full_access",
 ) -> aws.iam.RolePolicy:
     """
@@ -86,9 +87,11 @@ def create_dynamodb_policy(
         The created role policy resource
     """
 
-    def create_policy_doc(arn):
+    def create_policy_doc(arn: str) -> str:
         statement = create_dynamodb_policy_statement(arn, access_level)
         return json.dumps({"Version": "2012-10-17", "Statement": [statement]})
+
+    policy_document: Input[str]
 
     # If it's a Pulumi Output, use apply to transform it
     if isinstance(table_arn, pulumi.Output):
@@ -106,7 +109,7 @@ def create_dynamodb_policy(
 def create_s3_policy(
     name_prefix: str,
     role: aws.iam.Role,
-    bucket_arn: str,
+    bucket_arn: str | pulumi.Output[str],
     access_level: str = "full_access",
 ) -> aws.iam.RolePolicy:
     """
@@ -122,9 +125,11 @@ def create_s3_policy(
         The created role policy resource
     """
 
-    def create_policy_doc(arn):
+    def create_policy_doc(arn: str) -> str:
         statements = create_s3_policy_statement(arn, access_level)
         return json.dumps({"Version": "2012-10-17", "Statement": statements})
+
+    policy_document: Input[str]
 
     # If it's a Pulumi Output, use apply to transform it
     if isinstance(bucket_arn, pulumi.Output):
@@ -140,7 +145,9 @@ def create_s3_policy(
 
 
 def create_cloudwatch_logs_policy(
-    name_prefix: str, role: aws.iam.Role, log_group_arn: str = "*"
+    name_prefix: str,
+    role: aws.iam.Role,
+    log_group_arn: str = "*",
 ) -> aws.iam.RolePolicy:
     """
     Create an inline policy for CloudWatch Logs access.
