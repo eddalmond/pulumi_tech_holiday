@@ -82,6 +82,11 @@ jobs:
   pulumi-security-checks:
     name: Infrastructure Security & Compliance
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
 
     steps:
       - name: Checkout code
@@ -91,32 +96,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-
-      - name: "Run Checkov"
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: infrastructure/
-          soft_fail: false
-          output_format: sarif
-          output_file_path: checkov-report.sarif
-
-      - name: Upload Checkov results to GitHub Security tab
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkov_results
-          path: checkov-report.sarif
-
-      - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
-        with:
-          soft_fail: true
-
-      - name: Run Terrascan
-        uses: tenable/terrascan-action@main
-        with:
-          iac_type: "all"
-          policy_type: "all"
-          only_warn: true
 
       - name: Install Poetry and dependencies
         uses: snok/install-poetry@v1
@@ -128,6 +107,20 @@ jobs:
       - name: Install project dependencies
         run: poetry install --no-interaction --no-root
 
+      - name: Set up Node.js for policy pack
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Pulumi CLI
+        run: |
+          curl -fsSL https://get.pulumi.com | sh
+          echo "${HOME}/.pulumi/bin" >> $GITHUB_PATH
+
+      - name: Install AWSGuard policy pack dependencies
+        working-directory: policies/awsguard
+        run: npm install
+
       - name: Generate Pulumi program for analysis
         run: |
           # Create a temporary pulumi program for static analysis
@@ -136,37 +129,21 @@ jobs:
           cp pyproject.toml temp-pulumi-analysis/
           cp Pulumi.yaml temp-pulumi-analysis/
 
-      - name: Run Checkov on Pulumi code
-        run: |
-          checkov -d infrastructure/ \
-            --framework pulumi \
-            --output cli \
-            --output json \
-            --output-file-path . \
-            --repo-root-for-plan-enrichment . \
-            || true
-
-      - name: Run Checkov on Python files
-        run: |
-          checkov -d infrastructure/ \
-            --framework python \
-            --output cli \
-            --output json \
-            --output-file-path . \
-            || true
-
       - name: Install Pulumi Policy as Code (optional advanced checks)
         run: |
           # Install pulumi policy pack for additional checks
           poetry run pip install pulumi-policy
 
-      - name: Upload Checkov reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: checkov-reports
-          path: |
-            results_*.json
+      - name: Run Pulumi preview with AWSGuard
+        run: |
+          mkdir -p .pulumi
+          pulumi login --cloud-url "file://$(pwd)/.pulumi"
+          cd infrastructure
+          pulumi stack select dev --non-interactive || pulumi stack init dev
+          pulumi preview \
+            --stack dev \
+            --non-interactive \
+            --policy-pack ../policies/awsguard
 
   unit-tests:
     name: Unit Tests
