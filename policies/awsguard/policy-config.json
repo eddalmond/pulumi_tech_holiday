@@ -1,0 +1,5 @@
+{
+  "apigatewayEndpointType": "advisory",
+  "apigatewayStageCached": "advisory",
+  "s3BucketLoggingEnabled": "advisory"
+}

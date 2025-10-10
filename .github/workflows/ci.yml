@@ -136,7 +136,8 @@ jobs:
             --stack dev \
             --cwd infrastructure \
             --non-interactive \
-            --policy-pack ../policies/awsguard
+            --policy-pack ../policies/awsguard \
+            --policy-pack-config ../policies/awsguard/policy-config.json
 
   unit-tests:
     name: Unit Tests
