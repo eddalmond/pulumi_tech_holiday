@@ -87,7 +87,7 @@ public_subnet = aws.ec2.Subnet(
     "api-public-subnet",
     vpc_id=vpc.id,
     cidr_block="10.0.1.0/24",
-    availability_zone="us-east-1a",
+    availability_zone="eu-west-2a",
     map_public_ip_on_launch=True,
     tags={
         "Name": "API Public Subnet",
@@ -100,7 +100,7 @@ private_subnet = aws.ec2.Subnet(
     "api-private-subnet",
     vpc_id=vpc.id,
     cidr_block="10.0.2.0/24",
-    availability_zone="us-east-1a",
+    availability_zone="eu-west-2a",
     tags={
         "Name": "API Private Subnet",
         "Environment": "dev",
