@@ -14,6 +14,16 @@ pulumi-aws = "^7.8.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
+ruff = "^0.14.0"
+black = "^25.9.0"
+isort = "^6.1.0"
+mypy = "^1.18.2"
+bandit = "^1.8.6"
+safety = "^3.6.2"
+pytest-cov = "^7.0.0"
+pytest-html = "^4.1.1"
+pytest-xdist = "^3.8.0"
+pulumi-policy = "^1.18.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -80,9 +90,9 @@ python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 markers = [
-    "unit: marks tests as unit tests",
-    "integration: marks tests as integration tests",
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+  "unit: marks tests as unit tests",
+  "integration: marks tests as integration tests",
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
 
 [tool.coverage.run]
@@ -91,16 +101,16 @@ omit = ["*/tests/*", "*/__pycache__/*", "*/venv/*", "*/.venv/*"]
 
 [tool.coverage.report]
 exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == \"__main__\":",
-    "class .*\\bProtocol\\):",
-    "@\\(abc\\.\\)?abstractmethod",
+  "pragma: no cover",
+  "def __repr__",
+  "if self.debug:",
+  "if settings.DEBUG",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if 0:",
+  "if __name__ == \"__main__\":",
+  "class .*\\bProtocol\\):",
+  "@\\(abc\\.\\)?abstractmethod",
 ]
 
 [tool.bandit]

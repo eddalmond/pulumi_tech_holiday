@@ -4,18 +4,18 @@
 # Default target
 help:
 	@echo "Available targets:"
-	@echo "  install    - Install dependencies"
-	@echo "  lint       - Run all linting checks"
-	@echo "  format     - Format code automatically"
-	@echo "  test       - Run unit tests with coverage"
-	@echo "  security   - Run security checks (Bandit, Safety, Checkov)"
-	@echo "  clean      - Clean up temporary files"
-	@echo "  ci         - Run full CI pipeline locally"
+	@echo "  install        - Install dependencies"
+	@echo "  lint           - Run all linting checks"
+	@echo "  format         - Format code automatically"
+	@echo "  test           - Run unit tests with coverage"
+	@echo "  security       - Run security checks (Bandit, Safety, Checkov)"
+	@echo "  policy-preview - Run pulumi preview with policy packs"
+	@echo "  clean          - Clean up temporary files"
+	@echo "  ci             - Run full CI pipeline locally"
 
 # Install dependencies
 install:
-	poetry install
-	poetry add --group dev ruff black isort mypy bandit safety pytest-cov pytest-html pytest-xdist
+	poetry install --with dev
 	pip install checkov
 
 # Format code automatically
@@ -45,6 +45,22 @@ security:
 	poetry run safety check
 	@echo "Running Checkov infrastructure security check..."
 	checkov -d infrastructure/ --framework pulumi --framework python
+
+STACK ?= dev
+
+policy-preview:
+	mkdir -p .pulumi
+	poetry run pulumi login --cloud-url "file://$(PWD)/.pulumi"
+	poetry run pulumi stack select $(STACK) --cwd infrastructure --non-interactive || \
+		poetry run pulumi stack init $(STACK) --cwd infrastructure
+	poetry run pulumi preview \
+		--stack $(STACK) \
+		--cwd infrastructure \
+		--non-interactive \
+		--policy-pack ../policies/awsguard \
+		--policy-pack-config ../policies/awsguard/policy-config.json \
+		--policy-pack ../policies/python \
+		--policy-pack-config ../policies/python/policy-config.json
 
 # Run unit tests with coverage
 test:

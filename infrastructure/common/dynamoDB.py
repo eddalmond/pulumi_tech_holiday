@@ -1,13 +1,16 @@
 from typing import Optional
+
 import pulumi_aws as aws
+
 from .config import _config
+
 
 def create_dynamodb_table(
     name_prefix: str,
     hash_key: str,
     attributes: Optional[list] = None,
     tags: Optional[dict] = None,
-    ) -> aws.dynamodb.Table:
+) -> aws.dynamodb.Table:
     """
     Create a DynamoDB table for state locking.
     """
@@ -17,6 +20,6 @@ def create_dynamodb_table(
         billing_mode="PAY_PER_REQUEST",
         hash_key=hash_key,
         attributes=attributes,
-        tags=tags
+        tags=tags,
     )
     return dynamodb_table

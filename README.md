@@ -78,10 +78,10 @@ pulumi version      # Should show v3.201.0
 ### 1. Install dependencies using Poetry
 
 ```bash
-poetry install
+poetry install --with dev
 ```
 
-This will create a virtual environment and install all required dependencies including Pulumi and AWS provider.
+This will create a virtual environment and install all required dependencies including Pulumi, AWS provider, and the local policy tooling used in CI.
 
 ### 2. Configure AWS credentials
 
@@ -201,12 +201,24 @@ This project uses Poetry for dependency management and virtual environments. Her
 - **Show dependencies**: `poetry show`
 - **Update dependencies**: `poetry update`
 
-### Preview changes
+### Preview changes with policy packs
 
-To preview what resources will be created:
+To preview what resources will be created and evaluate them against both the AWSGuard (TypeScript) and Python policy packs:
 
 ```bash
-poetry run pulumi preview
+make policy-preview STACK=dev
+```
+
+Alternatively, you can run the underlying command directly:
+
+```bash
+poetry run pulumi preview \
+  --cwd infrastructure \
+  --stack dev \
+  --policy-pack ../policies/awsguard \
+  --policy-pack-config ../policies/awsguard/policy-config.json \
+  --policy-pack ../policies/python \
+  --policy-pack-config ../policies/python/policy-config.json
 ```
 
 ### Deploy infrastructure
@@ -273,7 +285,7 @@ The following enhancements can be added:
 
 ## Project Structure
 
-```
+```text
 .
 ├── src/
 │   └── __main__.py          # Main Pulumi program with conditional deployment logic
