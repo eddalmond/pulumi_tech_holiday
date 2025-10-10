@@ -121,14 +121,6 @@ jobs:
         working-directory: policies/awsguard
         run: npm install
 
-      - name: Generate Pulumi program for analysis
-        run: |
-          # Create a temporary pulumi program for static analysis
-          mkdir -p temp-pulumi-analysis
-          cp -r infrastructure/ temp-pulumi-analysis/
-          cp pyproject.toml temp-pulumi-analysis/
-          cp Pulumi.yaml temp-pulumi-analysis/
-
       - name: Install Pulumi Policy as Code (optional advanced checks)
         run: |
           # Install pulumi policy pack for additional checks
@@ -137,13 +129,14 @@ jobs:
       - name: Run Pulumi preview with AWSGuard
         run: |
           mkdir -p .pulumi
-          pulumi login --cloud-url "file://$(pwd)/.pulumi"
-          cd infrastructure
-          pulumi stack select dev --non-interactive || pulumi stack init dev
-          pulumi preview \
+          poetry run pulumi login --cloud-url "file://$(pwd)/.pulumi"
+          poetry run pulumi stack select dev --cwd infrastructure --non-interactive || \
+            poetry run pulumi stack init dev --cwd infrastructure
+          poetry run pulumi preview \
             --stack dev \
+            --cwd infrastructure \
             --non-interactive \
-            --policy-pack ../policies/awsguard
+            --policy-pack policies/awsguard
 
   unit-tests:
     name: Unit Tests
