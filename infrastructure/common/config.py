@@ -8,7 +8,6 @@ This module provides centralized access to:
 - Common configuration values
 """
 
-from typing import Optional
 
 import pulumi
 import pulumi_aws as aws
@@ -18,9 +17,9 @@ class PulumiConfig:
     """Centralized configuration for Pulumi AWS resources."""
 
     def __init__(self):
-        self._stack_name: Optional[str] = None
-        self._current: Optional[aws.GetCallerIdentityResult] = None
-        self._region: Optional[aws.GetRegionResult] = None
+        self._stack_name: str | None = None
+        self._current: aws.GetCallerIdentityResult | None = None
+        self._region: aws.GetRegionResult | None = None
 
     def _ensure_initialized(self):
         """Lazy initialization of AWS resources."""

@@ -14,7 +14,7 @@ import pulumi
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "infrastructure"))
 
 # Import common test utilities
-from tests.common import get_test_mocks, setup_pulumi_mocks
+from tests.common import setup_pulumi_mocks
 
 # Set up mocks for all tests in this module
 setup_pulumi_mocks()

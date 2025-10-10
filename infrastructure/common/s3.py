@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 import pulumi_aws as aws
 
@@ -11,9 +10,9 @@ class S3BucketResources:
     """Container for all resources created by create_s3_bucket."""
 
     bucket: aws.s3.Bucket
-    versioning: Optional[aws.s3.BucketVersioning] = None
-    encryption: Optional[aws.s3.BucketServerSideEncryptionConfiguration] = None
-    public_access_block: Optional[aws.s3.BucketPublicAccessBlock] = None
+    versioning: aws.s3.BucketVersioning | None = None
+    encryption: aws.s3.BucketServerSideEncryptionConfiguration | None = None
+    public_access_block: aws.s3.BucketPublicAccessBlock | None = None
 
 
 def enable_versioning(bucket: aws.s3.Bucket, name_prefix: str):
@@ -96,7 +95,7 @@ def create_s3_bucket(
     versioning: bool,
     encryption: bool,
     public_access_block: bool,
-    tags: Optional[dict],
+    tags: dict | None,
 ) -> S3BucketResources:
     """
     Create an S3 bucket with optional security configurations.

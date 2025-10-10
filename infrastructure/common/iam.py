@@ -1,11 +1,11 @@
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 import pulumi_aws as aws
 
 
 def create_custom_policy(
-    name_prefix: str, role: aws.iam.Role, policy_statements: List[Dict[str, Any]]
+    name_prefix: str, role: aws.iam.Role, policy_statements: list[dict[str, Any]]
 ) -> aws.iam.RolePolicy:
     """
     Create a custom inline policy with provided statements.

@@ -1,4 +1,3 @@
-from typing import Dict, Optional
 
 import pulumi
 import pulumi_aws as aws
@@ -9,10 +8,10 @@ def create_lambda_rest_api(
     name: str,
     lambda_function: aws.lambda_.Function,
     stage_name: str,
-    description: Optional[str] = None,
+    description: str | None = None,
     enable_proxy_route: bool = True,
     enable_root_route: bool = True,
-    tags: Optional[Dict[str, str]] = None,
+    tags: dict[str, str] | None = None,
 ) -> tuple[LambdaRestApi, aws.apigateway.Stage, pulumi.Output[str]]:
     """
     Create a REST API Gateway with Lambda integration using sensible defaults.

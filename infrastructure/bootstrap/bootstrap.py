@@ -4,7 +4,6 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 
 import pulumi
-import pulumi_aws as aws
 from common.config import _config
 from common.dynamoDB import create_dynamodb_table
 from common.s3 import create_s3_bucket
@@ -12,7 +11,7 @@ from common.s3 import create_s3_bucket
 
 def deploy_bootstrap_stack():
     # Bootstrap Stack: Create S3 bucket and DynamoDB table for Pulumi state storage
-    print(f"Deploying bootstrap infrastructure for state storage...")
+    print("Deploying bootstrap infrastructure for state storage...")
 
     # Create the S3 bucket for storing Pulumi state
     state_bucket = create_s3_bucket(

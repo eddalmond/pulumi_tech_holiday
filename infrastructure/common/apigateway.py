@@ -5,10 +5,10 @@ This module provides a clean abstraction for creating API Gateway REST APIs
 with Lambda proxy integrations, supporting multiple routes and methods.
 """
 
-from typing import Dict, List, Optional
 
 import pulumi
 import pulumi_aws as aws
+
 from common.config import _config
 
 
@@ -25,8 +25,8 @@ class LambdaRestApi:
         name: str,
         lambda_function: aws.lambda_.Function,
         stage_name: str,
-        description: Optional[str] = None,
-        tags: Optional[Dict[str, str]] = None,
+        description: str | None = None,
+        tags: dict[str, str] | None = None,
     ):
         """
         Initialize a new Lambda REST API.
@@ -49,7 +49,7 @@ class LambdaRestApi:
         )
 
         # Track all integrations for deployment dependencies
-        self._integrations: List[aws.apigateway.Integration] = []
+        self._integrations: list[aws.apigateway.Integration] = []
 
         # Grant API Gateway permission to invoke Lambda
         self.lambda_permission = aws.lambda_.Permission(
@@ -63,7 +63,7 @@ class LambdaRestApi:
     def add_proxy_route(
         self,
         path: str = "{proxy+}",
-        methods: List[str] = None,
+        methods: list[str] = None,
         authorization: str = "NONE",
     ) -> None:
         """
@@ -95,7 +95,7 @@ class LambdaRestApi:
             )
 
     def add_root_route(
-        self, methods: List[str] = None, authorization: str = "NONE"
+        self, methods: list[str] = None, authorization: str = "NONE"
     ) -> None:
         """
         Add methods to the root resource (/).

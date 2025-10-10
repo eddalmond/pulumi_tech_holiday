@@ -5,7 +5,7 @@ This module contains predefined policy statements that can be used
 with the create_custom_policy function for consistent IAM permissions.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 # DynamoDB access policies
 DYNAMODB_POLICIES = {
@@ -108,7 +108,7 @@ APIGATEWAY_POLICIES = {
 
 def create_dynamodb_policy_statement(
     table_arn: str, access_level: str = "full_access"
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create a DynamoDB policy statement.
 
@@ -135,7 +135,7 @@ def create_dynamodb_policy_statement(
 
 def create_s3_policy_statement(
     bucket_arn: str, access_level: str = "full_access"
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Create S3 policy statements (bucket and object access).
 
@@ -195,7 +195,7 @@ def create_s3_policy_statement(
     return statements
 
 
-def create_cloudwatch_logs_policy_statement(log_group_arn: str = "*") -> Dict[str, Any]:
+def create_cloudwatch_logs_policy_statement(log_group_arn: str = "*") -> dict[str, Any]:
     """
     Create a CloudWatch Logs policy statement.
 
@@ -212,7 +212,7 @@ def create_cloudwatch_logs_policy_statement(log_group_arn: str = "*") -> Dict[st
     }
 
 
-def create_lambda_invoke_policy_statement(lambda_arn: str) -> Dict[str, Any]:
+def create_lambda_invoke_policy_statement(lambda_arn: str) -> dict[str, Any]:
     """
     Create a Lambda invoke policy statement.
 

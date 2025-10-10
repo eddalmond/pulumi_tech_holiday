@@ -1,5 +1,4 @@
 import json
-from typing import List, Optional
 
 import pulumi
 import pulumi_aws as aws
@@ -13,8 +12,8 @@ from policy_config import (
 
 def create_lambda_execution_role(
     name_prefix: str,
-    additional_policies: Optional[List[str]] = None,
-    tags: Optional[dict] = None,
+    additional_policies: list[str] | None = None,
+    tags: dict | None = None,
 ) -> aws.iam.Role:
     """
     Create an IAM role for Lambda function execution with basic permissions.
