@@ -88,7 +88,7 @@ This is created with a local state file. In order to transfer to s3:
 4. Log into remote state: `poetry run pulumi login s3://pulumi-state-007027391700-eu-west-2`
 5. Initialise bootstrap state remotely: `poetry run pulumi stack init bootstrap`
 6. Import the local state file: `poetry run pulumi stack import --file bootstrap-state.json`
-7. Deploy the bootstrap layer: `poetry run pulumi stack`
+7. Deploy the bootstrap layer: `poetry run pulumi up`
 
 Cleanup:
 
