@@ -209,3 +209,7 @@ __marimo__/
 # Pulumi
 .pulumi/
 Pulumi.*.yaml
+
+# Node.js
+node_modules/
+package-lock.json

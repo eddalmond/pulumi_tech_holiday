@@ -9,7 +9,6 @@ from collections.abc import Sequence
 
 import pulumi
 import pulumi_aws as aws
-
 from common.config import _config
 
 
