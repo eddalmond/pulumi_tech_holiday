@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from app_layer.app_layer import deploy_application_stack
 from bootstrap.bootstrap import deploy_bootstrap_stack
+
 from common.config import _config
 
 
