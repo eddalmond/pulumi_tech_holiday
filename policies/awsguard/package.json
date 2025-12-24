@@ -6,7 +6,7 @@
   "private": true,
   "license": "Apache-2.0",
   "dependencies": {
-    "@pulumi/awsguard": "^0.3.0",
-    "@pulumi/policy": "^1.15.0"
+    "@pulumi/awsguard": "^0.4.0",
+    "@pulumi/policy": "^1.20.0"
   }
 }
