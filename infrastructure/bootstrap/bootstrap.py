@@ -4,6 +4,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 
 import pulumi
+
 from common.config import _config
 from common.dynamodb import create_dynamodb_table
 from common.s3 import create_s3_bucket
