@@ -6,14 +6,13 @@ sys.path.insert(0, os.path.dirname(__file__))
 import pulumi
 import pulumi_aws as aws
 from api_gateway import create_lambda_rest_api
+from common.dynamodb import create_dynamodb_table
+from common.s3 import create_s3_bucket
 from iam_policies import (
     create_dynamodb_policy,
     create_lambda_execution_role,
     create_s3_policy,
 )
-
-from common.dynamodb import create_dynamodb_table
-from common.s3 import create_s3_bucket
 
 
 def deploy_application_stack(stack_name: str) -> None:
